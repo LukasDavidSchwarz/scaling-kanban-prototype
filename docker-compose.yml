@@ -1,0 +1,28 @@
+version: "3.7"
+
+services:
+
+  backend:
+    build:
+      context: backend
+      target: development-watch
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - DB_CONNECTION_URI=mongodb://database:27017
+    volumes:
+      - ./backend:/src
+
+  database:
+    image: mongo:latest
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongodb_data_container:/data/database
+
+volumes:
+  mongodb_data_container: {}
