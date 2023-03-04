@@ -10,9 +10,12 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - DB_CONNECTION_URI=mongodb://database:27017
+      - DB_CONNECTION_TIMEOUT_MS=10000
+      - DB_CONNECTION_URI=mongodb://root:rootpassword@database:27017
     volumes:
       - ./backend:/src
+    depends_on:
+      - database
 
   database:
     image: mongo:latest
