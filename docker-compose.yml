@@ -6,12 +6,15 @@ services:
     build:
       context: backend
       target: development-watch
-    restart: always
-    ports:
-      - "3000:3000"
+    restart: unless-stopped
     environment:
+      - BACKEND_PORT=3512
       - DB_CONNECTION_TIMEOUT_MS=10000
       - DB_CONNECTION_URI=mongodb://root:rootpassword@database:27017
+    ports:
+      - "3512:3512"
+    networks:
+      - backend
     volumes:
       - ./backend:/src
     depends_on:
@@ -19,13 +22,19 @@ services:
 
   database:
     image: mongo:latest
+    restart: unless-stopped
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: rootpassword
     ports:
       - "27018:27017"
+    networks:
+      - backend
     volumes:
       - mongodb_data_container:/data/database
 
 volumes:
   mongodb_data_container: {}
+
+networks:
+  backend: {}

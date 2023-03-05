@@ -1,6 +1,7 @@
 FROM rust:1.67-buster AS base
 
 ENV ENV=development
+ENV CARGO_TARGET_DIR=../target
 
 WORKDIR /src
 RUN cargo init
