@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Kanban board</title>
+</head>
+<body>
+<label for="board-content">Content: </label><textarea id="board-content"></textarea>
+<script>
+    const contentTextArea = document.getElementById('board-content');
+    const socket = new WebSocket('ws://localhost:3512/board/0');
+    socket.addEventListener('open', event => {
+        console.log('web socket opened!');
+    });
+
+    socket.addEventListener('message', event => {
+        console.log('Received data:', event.data);
+        contentTextArea.textContent = event.data;
+    });
+</script>
+</body>
+</html>

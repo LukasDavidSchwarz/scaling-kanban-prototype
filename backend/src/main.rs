@@ -1,13 +1,16 @@
+use axum::extract::Path;
 use axum::http::StatusCode;
+use axum::response::Html;
 use axum::{extract::State, routing::get, Json, Router, ServiceExt};
 use mongodb::{options::ClientOptions, Client};
-use std::env;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Duration;
+use std::{env, fs};
 
 pub struct AppState {
     db: Client,
+    frontend_app: String,
 }
 
 // TODO: use structopt for environment variable parsing
@@ -29,9 +32,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!(" - {}", db_name);
     }
 
-    let shared_state = Arc::new(AppState { db });
+    let frontend_app = fs::read_to_string("static/board.html")?;
+
+    let shared_state = Arc::new(AppState { db, frontend_app });
     let app = Router::new()
         .route("/", get(index_handler))
+        .route("/board/:board_id", get(serve_frontend))
         .with_state(shared_state);
 
     let port = env::var("BACKEND_PORT")
@@ -52,4 +58,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 async fn index_handler() -> &'static str {
     "Hello, World!"
+}
+
+async fn serve_frontend(
+    State(state): State<Arc<AppState>>,
+    Path(user_id): Path<u128>,
+) -> Html<String> {
+    Html(state.frontend_app.clone())
 }
