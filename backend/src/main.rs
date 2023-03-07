@@ -1,12 +1,21 @@
-use axum::extract::Path;
+use axum::extract::{ConnectInfo, Path};
 use axum::http::StatusCode;
-use axum::response::Html;
-use axum::{extract::State, routing::get, Json, Router, ServiceExt};
+use axum::response::{Html, IntoResponse};
+use axum::{
+    extract::{
+        ws::{Message, WebSocket, WebSocketUpgrade},
+        State,
+    },
+    routing::get,
+    Json, Router, ServiceExt,
+};
 use mongodb::{options::ClientOptions, Client};
 use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Duration;
 use std::{env, fs};
+use tracing_subscriber::layer::SubscriberExt;
+use tracing_subscriber::util::SubscriberInitExt;
 
 pub struct AppState {
     db: Client,
@@ -16,6 +25,13 @@ pub struct AppState {
 // TODO: use structopt for environment variable parsing
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    tracing_subscriber::registry()
+        .with(
+            tracing_subscriber::EnvFilter::try_from_default_env()
+                .unwrap_or_else(|_| "kanban_backend=trace,tower_http=trace".into()),
+        )
+        .with(tracing_subscriber::fmt::layer())
+        .init();
     println!("Starting server...");
 
     let db_uri =
@@ -37,19 +53,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let shared_state = Arc::new(AppState { db, frontend_app });
     let app = Router::new()
         .route("/", get(index_handler))
-        .route("/board/:board_id", get(serve_frontend))
-        .with_state(shared_state);
+        .route("/board/:board_id", get(board_handler))
+        .route("/board/:board_id/ws", get(websocket_handler))
+        .with_state(shared_state)
+        .layer(
+            tower_http::trace::TraceLayer::new_for_http().make_span_with(
+                tower_http::trace::DefaultMakeSpan::default().include_headers(true),
+            ),
+        );
 
-    let port = env::var("BACKEND_PORT")
-        .expect("Environment variable `BACKEND_PORT` not set!")
+    let address = env::var("BACKEND_ADDRESS")
+        .expect("Environment variable `BACKEND_ADDRESS` not set!")
         .parse()
-        .expect("Failed to parse `BACKEND_PORT`!");
+        .expect("Failed to parse `BACKEND_ADDRESS`!");
 
-    // TODO: parse ip address from environment
-    let address = SocketAddr::from(([0, 0, 0, 0], port));
     println!("Listening on http://{}...", address);
     axum::Server::bind(&address)
-        .serve(app.into_make_service())
+        .serve(app.into_make_service_with_connect_info::<SocketAddr>())
         .await?;
 
     println!("Server stopped.");
@@ -57,12 +77,40 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 async fn index_handler() -> &'static str {
-    "Hello, World!"
+    println!("Sending greetings from index...");
+    "Hello, please navigate to /board/0"
 }
 
-async fn serve_frontend(
+async fn board_handler(
     State(state): State<Arc<AppState>>,
-    Path(user_id): Path<u128>,
+    Path(_board_id): Path<u128>,
 ) -> Html<String> {
+    println!("Sending frontend...");
     Html(state.frontend_app.clone())
+}
+
+async fn websocket_handler(
+    socket_upgrade: WebSocketUpgrade,
+    ConnectInfo(address): ConnectInfo<SocketAddr>,
+) -> impl IntoResponse {
+    println!("Received websocket request from {address}.");
+    socket_upgrade.on_upgrade(move |socket| handle_websocket(socket, address))
+}
+
+async fn handle_websocket(mut socket: WebSocket, address: SocketAddr) {
+    println!("Upgraded websocket request from {address}");
+
+    match socket.send(Message::Ping(vec![1])).await {
+        Ok(()) => println!("Pinged {address}..."),
+        Err(err) => {
+            println!("Failed to ping {address}: {err}");
+            return;
+        }
+    }
+
+    match socket.send(Message::Text("Hello World!".to_string())).await {
+        Ok(()) => println!("Sent greetings to frontend!"),
+        Err(err) => println!("Failed to send greetings to frontend: {err}"),
+    }
+    socket.close().await.ok();
 }
