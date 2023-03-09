@@ -7,8 +7,9 @@ use axum::{
         State,
     },
     routing::get,
-    Json, Router, ServiceExt,
+    Error, Json, Router, ServiceExt,
 };
+use futures_util::StreamExt;
 use mongodb::{options::ClientOptions, Client};
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -17,6 +18,7 @@ use std::{env, fs};
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 
+// TODO: Use HashMap to map board id to all sockets listening for changes of that board
 pub struct AppState {
     db: Client,
     frontend_app: String,
@@ -108,9 +110,38 @@ async fn handle_websocket(mut socket: WebSocket, address: SocketAddr) {
         }
     }
 
-    match socket.send(Message::Text("Hello World!".to_string())).await {
-        Ok(()) => println!("Sent greetings to frontend!"),
-        Err(err) => println!("Failed to send greetings to frontend: {err}"),
+    while let Some(message) = socket.recv().await {
+        if let Err(err) = echo_message_back(&mut socket, message, &address).await {
+            println!(
+                "Encountered error when trying to echo websocket message back to client: {err}"
+            );
+            break;
+        }
     }
+    println!("Websocket connection with {address} was closed.");
+
     socket.close().await.ok();
+}
+
+async fn echo_message_back(
+    socket: &mut WebSocket,
+    message: Result<Message, Error>,
+    address: &SocketAddr,
+) -> Result<(), String> {
+    match message.map_err(|err| format!("{err}"))? {
+        Message::Text(t) => socket
+            .send(Message::Text(format!("Hello {t}!")))
+            .await
+            .map_err(|err| format!("{err}")),
+        Message::Binary(b) => socket
+            .send(Message::Binary(b))
+            .await
+            .map_err(|err| format!("{err}")),
+        Message::Close(close_frame) => Err(format!(
+            "Websocket connection with {address} was closed. Close frame: {:?}",
+            close_frame
+        )),
+        Message::Ping(_) => Ok(()),
+        Message::Pong(_) => Ok(()),
+    }
 }

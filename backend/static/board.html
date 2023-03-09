@@ -15,7 +15,11 @@
 
     socket.addEventListener('message', event => {
         console.log('Received data:', event.data);
-        contentTextArea.textContent = event.data;
+        contentTextArea.value = event.data;
+    });
+
+    contentTextArea.addEventListener('change', event => {
+        socket.send(event.target.value);
     });
 </script>
 </body>
