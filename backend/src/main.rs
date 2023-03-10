@@ -10,7 +10,8 @@ use axum::{
     routing::get,
     Error as AxumError, Json, Router, ServiceExt,
 };
-use futures_util::{StreamExt, TryFutureExt};
+use futures_util::stream::SplitSink;
+use futures_util::{SinkExt, StreamExt, TryFutureExt};
 use mongodb::{options::ClientOptions, Client as MongoClient, Client};
 use std::error::Error;
 use std::net::SocketAddr;
@@ -121,7 +122,7 @@ async fn handle_websocket(
     address: SocketAddr,
     board_id: u128,
 ) {
-    println!("Upgraded websocket request from {address}");
+    println!("Upgraded websocket request from {address} at board {board_id}");
 
     match socket.send(Message::Ping(vec![1])).await {
         Ok(()) => println!("Pinged {address}..."),
@@ -131,11 +132,13 @@ async fn handle_websocket(
         }
     }
 
+    let (mut socket_sender, mut socket_receiver) = socket.split();
+
     let nats_subject = format!("board.{board_id}");
     let mut subscriber = state.nats.subscribe(nats_subject.clone()).await.unwrap();
-    let subscriber_handle = tokio::spawn(handle_subscriber(subscriber));
+    let subscriber_handle = tokio::spawn(handle_subscriber(subscriber, socket_sender));
 
-    while let Some(message) = socket.recv().await {
+    while let Some(message) = socket_receiver.next().await {
         if let Message::Text(message) = message.unwrap() {
             println!("Received message from websocket: {message}");
             state
@@ -146,14 +149,16 @@ async fn handle_websocket(
         }
     }
     println!("Websocket connection with {address} was closed.");
-
-    socket.close().await.ok();
 }
 
-async fn handle_subscriber(mut subscriber: async_nats::Subscriber) {
+async fn handle_subscriber(
+    mut subscriber: async_nats::Subscriber,
+    mut socket_sender: SplitSink<WebSocket, Message>,
+) {
     while let Some(message) = subscriber.next().await {
         let message = String::from_utf8(message.payload.to_vec()).unwrap();
         println!("Received message from Nats: {message}");
+        socket_sender.send(Message::Text(message)).await.unwrap();
     }
 }
 
