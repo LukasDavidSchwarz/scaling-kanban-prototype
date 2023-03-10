@@ -10,7 +10,8 @@ services:
     environment:
       - BACKEND_ADDRESS=0.0.0.0:3512
       - DB_CONNECTION_TIMEOUT_MS=10000
-      - DB_CONNECTION_URI=mongodb://root:rootpassword@database:27017
+      - DB_CONNECTION_URL=mongodb://root:rootpassword@database:27017
+      - PUBSUB_CONNECTION_URL=nats://pubsub:4222
     ports:
       - "3512:3512"
     networks:
@@ -19,9 +20,10 @@ services:
       - ./backend:/src
     depends_on:
       - database
+      - pubsub
 
   database:
-    image: mongo:latest
+    image: mongo:6
     restart: unless-stopped
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
@@ -32,6 +34,14 @@ services:
       - backend
     volumes:
       - mongodb_data_container:/data/database
+
+  pubsub:
+    image: nats:2
+    restart: unless-stopped
+    ports:
+      - "4223:4222"
+    networks:
+      - backend
 
 volumes:
   mongodb_data_container: {}
