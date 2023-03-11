@@ -1,6 +1,5 @@
 use async_nats::Client as NatsClient;
 use axum::extract::{ConnectInfo, Path};
-use axum::http::StatusCode;
 use axum::response::{Html, IntoResponse};
 use axum::{
     extract::{
@@ -8,12 +7,13 @@ use axum::{
         State,
     },
     routing::get,
-    Error as AxumError, Json, Router, ServiceExt,
+    Router,
 };
-use futures_util::stream::SplitSink;
-use futures_util::{SinkExt, StreamExt, TryFutureExt};
+use futures_util::stream::{SplitSink, SplitStream};
+use futures_util::{SinkExt, StreamExt};
 use mongodb::{options::ClientOptions, Client as MongoClient, Client};
 use std::error::Error;
+use std::fmt::{Display, Formatter};
 use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Duration;
@@ -34,7 +34,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "kanban_backend=trace,tower_http=trace".into()),
+                .unwrap_or_else(|_| "kanban_backend=trace,tower_http=info".into()),
         )
         .with(tracing_subscriber::fmt::layer())
         .init();
@@ -112,76 +112,129 @@ async fn websocket_handler(
     State(state): State<Arc<AppState>>,
     Path(board_id): Path<u128>,
 ) -> impl IntoResponse {
-    println!("Received websocket request from {address}.");
-    socket_upgrade.on_upgrade(move |socket| handle_websocket(socket, state, address, board_id))
+    let connection_info = ConnectionInfo {
+        app_state: state,
+        address,
+        board_id,
+    };
+    println!("Received websocket request from {connection_info}");
+    socket_upgrade.on_upgrade(move |socket| handle_connection(socket, connection_info))
 }
 
-async fn handle_websocket(
-    mut socket: WebSocket,
-    state: Arc<AppState>,
+#[derive(Clone)]
+struct ConnectionInfo {
+    app_state: Arc<AppState>,
     address: SocketAddr,
     board_id: u128,
-) {
-    println!("Upgraded websocket request from {address} at board {board_id}");
+}
 
+impl ConnectionInfo {
+    pub fn nats_subject(&self) -> String {
+        format!("board.{}", self.board_id)
+    }
+}
+
+impl Display for ConnectionInfo {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "[board.{}@{}]", self.board_id, self.address)
+    }
+}
+
+async fn handle_connection(mut socket: WebSocket, connection_info: ConnectionInfo) {
+    println!("Upgraded websocket of connection {connection_info}");
     match socket.send(Message::Ping(vec![1])).await {
-        Ok(()) => println!("Pinged {address}..."),
+        Ok(()) => println!("Pinged {connection_info}..."),
         Err(err) => {
-            println!("Failed to ping {address}: {err}");
+            println!("Failed to ping {connection_info}: {err}");
             return;
         }
     }
 
-    let (mut socket_sender, mut socket_receiver) = socket.split();
+    let nats = connection_info.app_state.nats.clone();
+    let nats_subject = connection_info.nats_subject();
+    let subscriber = nats.subscribe(nats_subject).await.expect(&format!(
+        "Failed to subscribe to Nats for {connection_info}!"
+    ));
 
-    let nats_subject = format!("board.{board_id}");
-    let mut subscriber = state.nats.subscribe(nats_subject.clone()).await.unwrap();
-    let subscriber_handle = tokio::spawn(handle_subscriber(subscriber, socket_sender));
+    let (socket_sender, socket_receiver) = socket.split();
 
-    while let Some(message) = socket_receiver.next().await {
-        if let Message::Text(message) = message.unwrap() {
-            println!("Received message from websocket: {message}");
-            state
-                .nats
-                .publish(nats_subject.clone(), message.into())
-                .await
-                .unwrap();
+    let mut subscriber_task = tokio::spawn(handle_subscriber(
+        subscriber,
+        socket_sender,
+        connection_info.clone(),
+    ));
+    let mut receiver_task = tokio::spawn(handle_socket_receiver(
+        nats,
+        socket_receiver,
+        connection_info.clone(),
+    ));
+
+    tokio::select! {
+        sub_result = (&mut subscriber_task) => {
+            println!("Closed subscriber of {connection_info}: {:?}",sub_result);
+            receiver_task.abort();
+        },
+        rec_result = (&mut receiver_task) => {
+            println!("Closed websocket of {connection_info}: {:?}", rec_result);
+            subscriber_task.abort();
         }
     }
-    println!("Websocket connection with {address} was closed.");
+
+    println!("Context of {connection_info} was destroyed.");
 }
 
 async fn handle_subscriber(
     mut subscriber: async_nats::Subscriber,
     mut socket_sender: SplitSink<WebSocket, Message>,
-) {
-    while let Some(message) = subscriber.next().await {
-        let message = String::from_utf8(message.payload.to_vec()).unwrap();
-        println!("Received message from Nats: {message}");
-        socket_sender.send(Message::Text(message)).await.unwrap();
+    connection: ConnectionInfo,
+) -> Result<(), String> {
+    loop {
+        let message = subscriber
+            .next()
+            .await
+            .ok_or(format!("Nats subscriber for {connection} was closed."))?;
+
+        let message = String::from_utf8(message.payload.to_vec()).map_err(|e| e.to_string())?;
+        println!("Received Nats message for {connection}: {message}");
+        socket_sender
+            .send(Message::Text(message))
+            .await
+            .map_err(|e| e.to_string())?;
     }
 }
 
-async fn echo_message_back(
-    socket: &mut WebSocket,
-    message: Result<Message, AxumError>,
-    address: &SocketAddr,
-) -> Result<(), Box<dyn Error>> {
-    match message.map_err(|err| format!("{err}"))? {
-        Message::Text(t) => socket
-            .send(Message::Text(format!("Hello {t}!")))
+async fn handle_socket_receiver(
+    nats: NatsClient,
+    mut socket_receiver: SplitStream<WebSocket>,
+    connection: ConnectionInfo,
+) -> Result<(), String> {
+    loop {
+        let message = socket_receiver
+            .next()
             .await
-            .map_err(|err| err.into()),
-        Message::Binary(b) => socket
-            .send(Message::Binary(b))
-            .await
-            .map_err(|err| err.into()),
-        Message::Close(close_frame) => Err(format!(
-            "Websocket connection with {address} was closed. Close frame: {:?}",
-            close_frame
-        )
-        .into()),
-        Message::Ping(_) => Ok(()),
-        Message::Pong(_) => Ok(()),
+            .ok_or(format!("Socket for {connection} was closed."))?
+            .map_err(|e| e.to_string())?;
+
+        if let Message::Text(message) = message {
+            println!("Received socket message from {connection}: {message}");
+
+            println!("Sending Nats message for {connection}: {message}");
+            let message = message.into();
+            nats.publish(connection.nats_subject(), message)
+                .await
+                .map_err(|e| e.to_string())?;
+        } else if let Message::Binary(_) = message {
+            return Err(format!(
+                "Received binary socket message from {connection}. Closing connection..."
+            ));
+        } else if let Message::Close(_) = message {
+            return Err(format!(
+                "Socket closed by {connection}! Cleaning up connection..."
+            ));
+        } else {
+            println!("Received socket message {:?} from {connection}", {
+                message
+            });
+        }
     }
 }
