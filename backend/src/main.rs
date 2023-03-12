@@ -26,6 +26,7 @@ use tracing_subscriber::util::SubscriberInitExt;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
+/// Provides a websocket interface for the frontend to be updated about changes made by other users
 pub struct Cli {
     #[arg(env)]
     /// The address at which this server should listen
