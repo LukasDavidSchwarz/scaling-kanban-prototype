@@ -56,7 +56,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let app = Router::new()
         .route("/", get(index_handler))
         .route("/board/:board_id", get(board_handler))
-        .route("/board/:board_id/ws", get(websocket_handler))
+        .route("/board/:board_id/watch", get(websocket_handler))
         .with_state(shared_state)
         .layer(
             tower_http::trace::TraceLayer::new_for_http().make_span_with(
