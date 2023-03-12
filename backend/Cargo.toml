@@ -10,7 +10,6 @@ axum = { version = "0.6", features = ["ws", "headers"] }
 futures = "0.3"
 futures-util = { version = "0.3", default-features = false, features = ["sink", "std"] }
 tokio = { version = "1.22", features = ["full"] }
-tokio-tungstenite = "0.18"
 tower = { version = "0.4", features = ["util"] }
 tower-http = { version = "0.4", features = ["fs", "trace"] }
 tracing = "0.1"
