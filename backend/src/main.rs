@@ -20,7 +20,7 @@ use std::fs;
 use std::net::SocketAddr;
 use std::path::PathBuf;
 use std::sync::Arc;
-use tracing::{error, event, info, instrument, trace, Level};
+use tracing::{error, info, instrument, trace};
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 
@@ -116,9 +116,12 @@ async fn connection_state_machine(
 ) {
     info!("Upgraded websocket");
     match socket.send(Message::Ping(vec![1])).await {
-        Ok(()) => event!(Level::TRACE, "Sending websocket ping..."),
+        Ok(()) => trace!("Sending websocket ping..."),
         Err(err) => {
-            info!(?err, "Failed to ping websocket");
+            info!(?err, "Failed to ping websocket.");
+
+            socket.close().await.ok();
+            info!("Destroyed connection context");
             return;
         }
     }
@@ -128,10 +131,11 @@ async fn connection_state_machine(
     let subscriber = match nats.subscribe(nats_subject).await {
         Ok(subscriber) => subscriber,
         Err(err) => {
-            error!(err, "Failed to subscribe to Nats ");
+            error!(err, "Failed to subscribe to Nats");
             if let Err(err) = socket.close().await {
                 error!(?err, "Failed to close websocket");
             }
+            info!("Destroyed connection context");
             return;
         }
     };
