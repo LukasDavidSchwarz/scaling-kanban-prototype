@@ -11,6 +11,7 @@ use axum::{
 };
 use futures_util::stream::{SplitSink, SplitStream};
 use futures_util::{SinkExt, StreamExt};
+use mongodb::bson::Uuid;
 use std::fmt::{Debug, Display, Formatter};
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -19,7 +20,7 @@ use tracing::{error, info, instrument, trace};
 #[derive(Clone, Copy, Debug)]
 struct ConnectionInfo {
     pub address: SocketAddr,
-    pub board_id: u128,
+    pub board_id: Uuid,
 }
 
 impl ConnectionInfo {
@@ -38,7 +39,7 @@ pub async fn websocket_handler(
     socket_upgrade: WebSocketUpgrade,
     ConnectInfo(address): ConnectInfo<SocketAddr>,
     State(app_state): State<Arc<AppState>>,
-    Path(board_id): Path<u128>,
+    Path(board_id): Path<Uuid>,
 ) -> impl IntoResponse {
     let connection_info = ConnectionInfo { address, board_id };
     socket_upgrade
@@ -55,7 +56,7 @@ async fn connection_state_machine(
     match socket.send(Message::Ping(vec![1])).await {
         Ok(()) => trace!("Sending websocket ping..."),
         Err(err) => {
-            info!(?err, "Failed to ping websocket.");
+            info!(?err, "Failed to ping websocket");
 
             socket.close().await.ok();
             info!("Destroyed connection context");
@@ -114,7 +115,7 @@ async fn handle_nats_subscriber(
         let nats_message = subscriber
             .next()
             .await
-            .ok_or(format!("Nats subscriber for {connection} was closed."))?;
+            .ok_or(format!("Nats subscriber for {connection} was closed"))?;
 
         let nats_message =
             String::from_utf8(nats_message.payload.to_vec()).map_err(|e| e.to_string())?;
@@ -136,7 +137,7 @@ async fn handle_socket_receiver(
         let socket_message = socket_receiver
             .next()
             .await
-            .ok_or(format!("Websocket for {connection} was closed."))?
+            .ok_or(format!("Websocket for {connection} was closed"))?
             .map_err(|e| e.to_string())?;
 
         if let Message::Text(socket_message) = socket_message {

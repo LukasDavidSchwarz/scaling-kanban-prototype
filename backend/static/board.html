@@ -4,23 +4,36 @@
     <meta charset="UTF-8">
     <title>Kanban board</title>
 </head>
-<body>
+<body onload="loaded()">
 <label for="board-content">Content: </label><textarea id="board-content"></textarea>
 <script>
-    const contentTextArea = document.getElementById('board-content');
-    const socket = new WebSocket(`ws://localhost:3512${window.location.pathname}/watch`);
-    socket.addEventListener('open', event => {
-        console.log('web socket opened!');
-    });
+    async function loaded() {
+        const contentTextArea = document.getElementById('board-content');
 
-    socket.addEventListener('message', event => {
-        console.log('Received data:', event.data);
-        contentTextArea.value = event.data;
-    });
+        const urlParams = new URLSearchParams(window.location.search);
+        const boardId = urlParams.get('boardId');
+        if (boardId === null) {
+            console.error('Failed to retrieve board_id query parameter!');
+            return;
+        }
 
-    contentTextArea.addEventListener('change', event => {
-        socket.send(event.target.value);
-    });
-</script>
+        let response = await fetch(`/board/${boardId}`);
+        let board = await response?.json();
+        console.log(`Board ${boardId}:`, board);
+
+        const socket = new WebSocket(`ws://0.0.0.0:3512/board/${boardId}/watch`);
+        socket.addEventListener('open', event => {
+            console.log('web socket opened!');
+        });
+
+        socket.addEventListener('message', event => {
+            console.log('Received data:', event.data);
+            contentTextArea.value = event.data;
+        });
+
+        contentTextArea.addEventListener('change', event => {
+            socket.send(event.target.value);
+        });
+    }</script>
 </body>
 </html>
