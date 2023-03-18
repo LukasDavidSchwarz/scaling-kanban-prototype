@@ -11,6 +11,7 @@ services:
       - BACKEND_ADDRESS=0.0.0.0:3512
       - DB_CONNECTION_TIMEOUT_MS=10000
       - DB_CONNECTION_URL=mongodb://root:rootpassword@database:27017
+      - DB_NAME=kanban
       - PUBSUB_CONNECTION_URL=nats://pubsub:4222
     ports:
       - "3512:3512"

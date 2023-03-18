@@ -1,1 +1,0 @@
-mongo kanban --eval "db.dropDatabase();"

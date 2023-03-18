@@ -1,16 +1,17 @@
 use crate::{AppState, Board};
 
+use crate::boards::BoardId;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use axum::Json;
-use mongodb::bson::{doc, Uuid};
+use mongodb::bson::doc;
 use std::sync::Arc;
 use tracing::{error, instrument};
 
 #[instrument(skip(app_state))]
 pub async fn handler(
     State(app_state): State<Arc<AppState>>,
-    Path(board_id): Path<Uuid>,
+    Path(board_id): Path<BoardId>,
 ) -> Result<Json<Board>, StatusCode> {
     let board = app_state
         .boards_table

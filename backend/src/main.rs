@@ -2,12 +2,18 @@ mod boards;
 mod connection;
 mod errors;
 
-use crate::boards::{get_boards_id, Board};
+use crate::boards::{get_boards_id, put_boards_id, Board};
 use crate::connection::websocket_handler;
 
 use async_nats::Client as NatsClient;
 use axum::extract::Query;
-use axum::{extract::Path, extract::State, response::Html, routing::get, Router};
+use axum::{
+    extract::Path,
+    extract::State,
+    response::Html,
+    routing::{get, put},
+    Router,
+};
 use clap::Parser;
 use futures_util::{StreamExt, TryStreamExt};
 use mongodb::bson::{doc, Uuid};
@@ -39,6 +45,10 @@ pub struct Cli {
     /// The connection url for the database server
     db_connection_url: String,
 
+    #[arg(env)]
+    /// The name of the mongo database
+    db_name: String,
+
     #[arg(env, default_value("10"))]
     /// The timeout for establishing connections to the database in seconds
     db_connect_timeout_s: usize,
@@ -69,8 +79,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
     info!("Starting server");
 
     let mongo = connect_to_mongo(&cli).await?;
-    let boards_table = mongo.database("kanban").collection::<Board>("boards");
-    try_seed_mongo(&boards_table).await?;
+    let boards_table = mongo
+        .default_database()
+        .expect("No database specified in mongo connection string!")
+        .collection::<Board>("boards");
+    let board = ensure_atleast_one_board(&boards_table).await?;
 
     let nats = async_nats::connect(cli.pubsub_connection_url).await?;
     let frontend_app = fs::read_to_string(cli.frontend_file)?;
@@ -85,6 +98,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let app = Router::new()
         .route("/", get(index_handler))
         .route("/board/:board_id", get(get_boards_id::handler))
+        .route("/board/:board_id", put(put_boards_id::handler))
         .route("/board/:board_id/watch", get(websocket_handler))
         .with_state(shared_state)
         .layer(
@@ -94,7 +108,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
         );
 
     info!("Listening on http://{}", cli.backend_address);
-    info!("Open http://{}/board/0 to get started", cli.backend_address);
+    info!(
+        "Open http://{}?boardId={} to get started",
+        cli.backend_address, board.id
+    );
     axum::Server::bind(&cli.backend_address)
         .serve(app.into_make_service_with_connect_info::<SocketAddr>())
         .await?;
@@ -104,36 +121,40 @@ async fn main() -> Result<(), Box<dyn Error>> {
 }
 
 async fn connect_to_mongo(cli: &Cli) -> Result<MongoClient, Box<dyn Error>> {
-    let mut client_options = MongoClientOptions::parse(&cli.db_connection_url)
-        .await
-        .expect("Failed to parse mongo connection url!");
-    client_options.app_name = Some("kanban backend".to_string());
+    let mut client_options = MongoClientOptions::parse(&cli.db_connection_url).await?;
+    client_options.default_database = Some(cli.db_name.clone());
+    client_options.app_name = Some("kanban backend".into());
     client_options.connect_timeout = Some(Duration::from_secs(cli.db_connect_timeout_s as u64));
     info!("Connecting to mongodb at {:?}...", client_options.hosts);
     let db = MongoClient::with_options(client_options)?;
-
-    info!("Connected to mongodb! Listing database names:");
-    for db_name in db.list_database_names(None, None).await? {
-        info!(" - {db_name}");
-    }
     Ok(db)
 }
 
-async fn try_seed_mongo(board_table: &Collection<Board>) -> Result<(), Box<dyn Error>> {
+async fn ensure_atleast_one_board(
+    board_table: &Collection<Board>,
+) -> Result<Board, Box<dyn Error>> {
     let board_count = board_table.estimated_document_count(None).await?;
     info!("The database contains {board_count} boards!");
 
-    if board_count == 0 {
+    let board = if board_count == 0 {
         let board_0 = Board {
             id: Uuid::new(),
+            version: 0,
             url: "shopping-list".to_string(),
             name: "Shopping list".to_string(),
             lists: vec![],
         };
-        board_table.insert_one(board_0, None).await?;
-    }
+        board_table.insert_one(&board_0, None).await?;
+        board_0
+    } else {
+        board_table.find_one(None, None).await?.ok_or_else(|| {
+            format!(
+                "Board query without filter returned None, even though board count is {board_count}!"
+            )
+        })?
+    };
 
-    Ok(())
+    Ok(board)
 }
 
 async fn index_handler(State(state): State<Arc<AppState>>) -> Html<String> {

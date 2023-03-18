@@ -1,0 +1,1 @@
+docker compose exec database mongosh -u root -p rootpassword kanban --eval 'db.dropDatabase();'

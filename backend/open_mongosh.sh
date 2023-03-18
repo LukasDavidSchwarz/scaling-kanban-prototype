@@ -1,0 +1,1 @@
+docker compose exec database mongosh "mongodb://root:rootpassword@localhost:27017" --shell --eval "use kanban"

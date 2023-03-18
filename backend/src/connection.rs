@@ -1,3 +1,4 @@
+use crate::boards;
 use crate::AppState;
 
 use async_nats::{Client as NatsClient, Subscriber};
@@ -21,12 +22,6 @@ use tracing::{error, info, instrument, trace};
 struct ConnectionInfo {
     pub address: SocketAddr,
     pub board_id: Uuid,
-}
-
-impl ConnectionInfo {
-    fn nats_subject(&self) -> String {
-        format!("board.{}", self.board_id)
-    }
 }
 
 impl Display for ConnectionInfo {
@@ -65,7 +60,7 @@ async fn connection_state_machine(
     }
 
     let nats = app_state.nats.clone();
-    let nats_subject = connection_info.nats_subject();
+    let nats_subject = boards::pubsub_subject(&connection_info.board_id);
     let subscriber = match nats.subscribe(nats_subject).await {
         Ok(subscriber) => subscriber,
         Err(err) => {
@@ -79,7 +74,6 @@ async fn connection_state_machine(
     };
 
     let (socket_sender, socket_receiver) = socket.split();
-
     let mut nats_subscriber_task = tokio::spawn(handle_nats_subscriber(
         subscriber,
         socket_sender,
@@ -145,7 +139,7 @@ async fn handle_socket_receiver(
 
             trace!(socket_message, "Publishing message via Nats");
             let message = socket_message.into();
-            nats.publish(connection.nats_subject(), message)
+            nats.publish(boards::pubsub_subject(&connection.board_id), message)
                 .await
                 .map_err(|e| e.to_string())?;
         } else if let Message::Binary(_) = socket_message {

@@ -13,6 +13,7 @@ CMD [ "cargo", "run", "--offline"]
 
 FROM development AS development-watch
 
+RUN cargo build --offline
 RUN cargo install cargo-watch
 CMD [ "cargo-watch", "-x", "run"]
 

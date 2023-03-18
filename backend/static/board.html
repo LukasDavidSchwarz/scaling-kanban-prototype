@@ -20,6 +20,7 @@
         let response = await fetch(`/board/${boardId}`);
         let board = await response?.json();
         console.log(`Board ${boardId}:`, board);
+        contentTextArea.value = board.name;
 
         const socket = new WebSocket(`ws://0.0.0.0:3512/board/${boardId}/watch`);
         socket.addEventListener('open', event => {
@@ -28,11 +29,22 @@
 
         socket.addEventListener('message', event => {
             console.log('Received data:', event.data);
-            contentTextArea.value = event.data;
+            board = JSON.parse(event.data);
+            contentTextArea.value = board.name;
         });
 
-        contentTextArea.addEventListener('change', event => {
-            socket.send(event.target.value);
+        contentTextArea.addEventListener('change', async event => {
+            board.name = event.target.value;
+            const requestBody = JSON.stringify(board);
+
+            let response = await fetch(`/board/${boardId}`, {
+                method: 'PUT',
+                body: requestBody,
+                headers: {
+                    "Content-Type": "application/json",
+                }
+            });
+            console.log(`PUT returned:`, response);
         });
     }</script>
 </body>
