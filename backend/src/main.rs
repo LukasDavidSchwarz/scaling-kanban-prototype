@@ -1,24 +1,21 @@
 mod boards;
 mod connection;
-mod errors;
 
 use crate::boards::{get_boards_id, put_boards_id, Board};
 use crate::connection::websocket_handler;
 
 use async_nats::Client as NatsClient;
-use axum::extract::Query;
+
 use axum::{
-    extract::Path,
     extract::State,
     response::Html,
     routing::{get, put},
     Router,
 };
 use clap::Parser;
-use futures_util::{StreamExt, TryStreamExt};
-use mongodb::bson::{doc, Uuid};
+use mongodb::bson::Uuid;
 use mongodb::options::ClientOptions as MongoClientOptions;
-use mongodb::{Client as MongoClient, Collection, Database};
+use mongodb::{Client as MongoClient, Collection};
 use std::error::Error;
 use std::fs;
 use std::net::SocketAddr;
@@ -59,7 +56,6 @@ pub struct Cli {
 }
 
 pub struct AppState {
-    mongo: MongoClient,
     boards_table: Collection<Board>,
     nats: NatsClient,
     frontend_app: String,
@@ -89,7 +85,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let frontend_app = fs::read_to_string(cli.frontend_file)?;
 
     let shared_state = Arc::new(AppState {
-        mongo,
         boards_table,
         nats,
         frontend_app,

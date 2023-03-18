@@ -1,7 +1,7 @@
 use crate::boards;
 use crate::AppState;
 
-use async_nats::{Client as NatsClient, Subscriber};
+use async_nats::{Subscriber};
 use axum::{
     extract::{
         ws::{Message, WebSocket, WebSocketUpgrade},
@@ -79,11 +79,8 @@ async fn connection_state_machine(
         socket_sender,
         connection_info,
     ));
-    let mut socket_receiver_task = tokio::spawn(handle_socket_receiver(
-        nats,
-        socket_receiver,
-        connection_info,
-    ));
+    let mut socket_receiver_task =
+        tokio::spawn(handle_socket_receiver(socket_receiver, connection_info));
 
     tokio::select! {
         nats_subscriber_result = (&mut nats_subscriber_task) => {
@@ -121,9 +118,8 @@ async fn handle_nats_subscriber(
     }
 }
 
-#[instrument(skip(nats, socket_receiver))]
+#[instrument(skip(socket_receiver))]
 async fn handle_socket_receiver(
-    nats: NatsClient,
     mut socket_receiver: SplitStream<WebSocket>,
     connection: ConnectionInfo,
 ) -> Result<(), String> {
@@ -134,19 +130,7 @@ async fn handle_socket_receiver(
             .ok_or(format!("Websocket for {connection} was closed"))?
             .map_err(|e| e.to_string())?;
 
-        if let Message::Text(socket_message) = socket_message {
-            trace!(socket_message, "Received text message from websocket");
-
-            trace!(socket_message, "Publishing message via Nats");
-            let message = socket_message.into();
-            nats.publish(boards::pubsub_subject(&connection.board_id), message)
-                .await
-                .map_err(|e| e.to_string())?;
-        } else if let Message::Binary(_) = socket_message {
-            return Err(format!(
-                "Received binary message via websocket {connection}. Closing connection..."
-            ));
-        } else if let Message::Close(_) = socket_message {
+        if let Message::Close(_) = socket_message {
             return Err(format!(
                 "Websocket closed gracefully by {connection}! Cleaning up connection..."
             ));
