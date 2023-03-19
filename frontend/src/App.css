@@ -1,0 +1,134 @@
+body {
+    background-color: #07689F !important;
+}
+
+.big-checkbox {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.taskList {
+    width: 320px;
+    display: inline-block;
+    vertical-align: top;
+    line-height: 20px;
+}
+
+.taskListHeader {
+    cursor: pointer;
+}
+
+.task {
+    line-height: 16px;
+}
+
+.taskListNameInput {
+    font-size: 16px !important;
+    font-weight: bold;
+    border-radius: 2px;
+}
+
+.taskListAddTaskButton {
+    transition: filter 0.15s ease-in-out;
+}
+
+.taskListAddTaskButton:focus {
+    box-shadow: none;
+    outline: none;
+}
+
+.taskListAddTaskButton:hover {
+    filter: brightness(90%) !important;
+}
+
+.taskNameInput {
+    font-size: 14px !important;
+    border-radius: 2px;
+}
+
+.nameInput {
+    outline: 2px solid transparent;
+    border-color: transparent;
+    cursor: pointer;
+    background: transparent;
+    transition: background-color, outline-color;
+    transition-duration: 0.15s;
+    width: 100%;
+    resize: none;
+}
+
+.nameInput:focus {
+    cursor: text;
+    outline: 2px solid #0079bf;
+    background: white;
+    box-sizing: border-box;
+}
+
+.addTaskListButton {
+    height: 40px;
+    min-width: 350px;
+    text-align: center;
+    color: white;
+    background-color: rgba(255, 255, 255, 0.24) !important;
+}
+
+.addTaskListButton:hover {
+    color: white;
+    filter: brightness(110%) !important;
+}
+
+.strikethrough {
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
+}
+
+.strikethrough:focus {
+    text-decoration: none;
+}
+
+.gray-medium {
+    background-color: rgb(225, 230, 234);
+}
+
+.gray-light {
+    background-color: rgb(250, 250, 250);
+}
+
+.btn {
+    font-size: 14px !important;
+}
+
+.btn-gray-medium {
+    background-color: rgb(228, 228, 228);
+}
+
+.btn-gray-light {
+    background-color: rgb(250, 250, 250);
+}
+
+.btn-gray-medium:hover {
+    background-color: rgb(192, 192, 192);
+}
+
+.btn-gray-light:hover {
+    background-color: rgb(225, 225, 225);
+}
+
+.btn-text {
+    border: none;
+    background-color: inherit;
+}
+
+.btn-text:hover {
+    border: none;
+    background-color: inherit;
+    filter: brightness(100%);
+}
+
+.footer {
+    color: white;
+    position: fixed;
+    bottom: 0px;
+    right: 15px;
+}
