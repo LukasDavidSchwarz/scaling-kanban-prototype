@@ -7,13 +7,13 @@ import {ITask, ITaskList} from "./types";
 
 interface Props {
     taskList: ITaskList;
+    index: number;
     onTaskListRenamed: (taskList: ITaskList, newName: string) => void;
     onAddTaskToTaskList: (taskList: ITaskList) => void;
     onRemoveTaskList: (taskList: ITaskList) => void;
 
     onRemoveTask: (taskList: ITaskList, task: ITask) => void;
     onTaskRenamed: (taskList: ITaskList, task: ITask, newName: string) => void;
-    onTaskIsDoneChanged: (taskList: ITaskList, task: ITask, newVal: boolean) => void;
 }
 
 
@@ -28,13 +28,13 @@ export default function TaskList({
                                      onAddTaskToTaskList,
                                      onRemoveTask,
                                      onRemoveTaskList,
-                                     onTaskIsDoneChanged,
                                      onTaskListRenamed,
                                      onTaskRenamed,
+                                     index,
                                      taskList
                                  }: Props) {
     return (
-        <Draggable draggableId={taskList.id.toString()} index={taskList.index}>
+        <Draggable draggableId={taskList?.id ?? ""} index={index}>
             { provided =>
                 <Container
                     {...provided.draggableProps}
@@ -55,7 +55,7 @@ export default function TaskList({
                                 <i className='fa fa-trash'/>
                             </button>
                         </div>
-                        <Droppable droppableId={taskList.id.toString()} type="TASKS">
+                        <Droppable droppableId={taskList?.id ?? ""} type="TASKS">
                             { provided => (
                                 <TaskContainer
                                     ref={provided.innerRef}
@@ -66,7 +66,6 @@ export default function TaskList({
                                             key={task.id}
                                             task={task}
                                             index={index}
-                                            onIsDoneChanged={(task, newVal) => onTaskIsDoneChanged(taskList, task, newVal)}
                                             onRenamed={(task, newName) => onTaskRenamed(taskList, task, newName)}
                                             onRemoveTask={task => onRemoveTask(taskList, task)}/>
                                     ))}

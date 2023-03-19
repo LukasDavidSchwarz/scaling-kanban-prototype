@@ -28,12 +28,34 @@ pub struct TaskList {
 pub struct Card {
     pub id: Uuid,
     pub name: String,
-    pub is_done: bool,
 }
 
 impl Board {
     pub fn pubsub_subject(&self) -> String {
         pubsub_subject(&self.id)
+    }
+}
+
+impl Default for Board {
+    fn default() -> Self {
+        let card = Card {
+            id: Uuid::new(),
+            name: "Buy apples".to_string(),
+        };
+
+        let list = TaskList {
+            id: Uuid::new(),
+            name: "Grocery list".to_string(),
+            tasks: vec![card],
+        };
+
+        Board {
+            id: Uuid::new(),
+            version: 0,
+            url: "shopping-list".to_string(),
+            name: "Shopping list".to_string(),
+            lists: vec![list],
+        }
     }
 }
 

@@ -13,7 +13,6 @@ use axum::{
     Router,
 };
 use clap::Parser;
-use mongodb::bson::Uuid;
 use mongodb::options::ClientOptions as MongoClientOptions;
 use mongodb::{Client as MongoClient, Collection};
 use std::error::Error;
@@ -22,6 +21,7 @@ use std::net::SocketAddr;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Duration;
+use tower_http::cors::{Any, CorsLayer};
 use tracing::{info, trace};
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
@@ -100,6 +100,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
             tower_http::trace::TraceLayer::new_for_http().make_span_with(
                 tower_http::trace::DefaultMakeSpan::default().include_headers(true),
             ),
+        )
+        // TODO: Set better Cors policy:
+        .layer(
+            CorsLayer::new()
+                .allow_methods(Any)
+                .allow_origin(Any)
+                .allow_headers(Any),
         );
 
     info!("Listening on http://{}", cli.backend_address);
@@ -132,13 +139,7 @@ async fn ensure_atleast_one_board(
     info!("The database contains {board_count} boards!");
 
     let board = if board_count == 0 {
-        let board_0 = Board {
-            id: Uuid::new(),
-            version: 0,
-            url: "shopping-list".to_string(),
-            name: "Shopping list".to_string(),
-            lists: vec![],
-        };
+        let board_0 = Board::default();
         board_table.insert_one(&board_0, None).await?;
         board_0
     } else {

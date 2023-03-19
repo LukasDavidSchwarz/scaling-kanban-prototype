@@ -78,15 +78,6 @@ body {
     filter: brightness(110%) !important;
 }
 
-.strikethrough {
-    text-decoration: line-through;
-    text-decoration-thickness: 1px;
-}
-
-.strikethrough:focus {
-    text-decoration: none;
-}
-
 .gray-medium {
     background-color: rgb(225, 230, 234);
 }

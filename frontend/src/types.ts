@@ -1,17 +1,18 @@
+export interface IBoard {
+    id?: string,
+    url: string,
+    version: number,
+    name: string,
+    lists: ITaskList[],
+}
+
 export interface ITaskList {
-    id: number;
-    index: number;
+    id?: string;
     name: string;
     tasks: ITask[];
 }
 
 export interface ITask {
-    id: string;
+    id?: string;
     name: string;
-    isDone: boolean;
-}
-
-export interface ITaskListReorderEntry {
-    id: number;
-    newIndex: number;
 }
