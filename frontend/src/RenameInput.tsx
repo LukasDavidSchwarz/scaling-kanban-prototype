@@ -1,7 +1,7 @@
-import React, {ChangeEvent, useRef} from "react";
-import useStateCallback from "./useStateCallback";
-import styled from "styled-components";
-import TextAreaAutosize from 'react-textarea-autosize'
+import React, {ChangeEvent, useRef} from 'react';
+import useStateCallback from './useStateCallback';
+import styled from 'styled-components';
+import TextAreaAutosize from 'react-textarea-autosize';
 
 
 interface Props {
@@ -26,7 +26,7 @@ export default function RenameInput({className, actualName, onRenamed}: Props) {
     const[tempName, setTempName] = useStateCallback<string | null>(null);
     const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
-    function handleBlur(event: ChangeEvent<HTMLTextAreaElement>) {
+    function handleBlur() {
         if (tempName === null) return;
 
         let newName = tempName.trim();
@@ -49,21 +49,21 @@ export default function RenameInput({className, actualName, onRenamed}: Props) {
         if(event.key === 'Enter')
             textAreaRef.current.blur();
 
-        else if(event.key === "Escape") {
+        else if(event.key === 'Escape') {
             setTempName(null, () => {
                 if(textAreaRef.current != null)
-                    textAreaRef.current.blur()
+                    textAreaRef.current.blur();
             });
         }
     }
 
-    function handleFocus(event: React.FocusEvent) {
+    function handleFocus() {
         if(textAreaRef.current === null) return;
         textAreaRef.current.select();
         setTempName(actualName);
     }
 
-    function onFocusOnClickProxyClicked(event: React.MouseEvent) {
+    function onFocusOnClickProxyClicked() {
         if(textAreaRef.current === null) return;
         textAreaRef.current.focus();
     }

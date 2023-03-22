@@ -1,7 +1,7 @@
-import RenameInput from "./RenameInput";
-import {Draggable} from "react-beautiful-dnd";
-import styled from "styled-components";
-import {ITask} from "./types";
+import RenameInput from './RenameInput';
+import {Draggable} from 'react-beautiful-dnd';
+import styled from 'styled-components';
+import {ITask} from './types';
 
 interface Props {
     task: ITask;
@@ -16,7 +16,7 @@ const Container = styled.div`
 
 export default function Task({task, index, onRemoveTask, onRenamed}: Props) {
     return (
-        <Draggable draggableId={task?.id ?? ""} index={index}>
+        <Draggable draggableId={task?.id ?? ''} index={index}>
             {provided => (
                 <Container
                     {...provided.draggableProps}

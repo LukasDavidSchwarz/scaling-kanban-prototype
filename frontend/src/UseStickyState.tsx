@@ -1,7 +1,7 @@
 // created by: https://www.joshwcomeau.com/
 // source: https://www.joshwcomeau.com/react/persisting-react-state-in-localstorage/
 
-import React, {useState} from "react";
+import React, {useState} from 'react';
 
 export default function useStickyState<T>(defaultValue: T, key: string): [T,  React.Dispatch<React.SetStateAction<T>>] {
     const [value, setValue] = useState(() => {

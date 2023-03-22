@@ -1,9 +1,9 @@
 import * as React from 'react';
-import Task from "./Task";
-import RenameInput from "./RenameInput";
-import {Draggable, Droppable} from "react-beautiful-dnd";
-import styled from "styled-components";
-import {ITask, ITaskList} from "./types";
+import Task from './Task';
+import RenameInput from './RenameInput';
+import {Draggable, Droppable} from 'react-beautiful-dnd';
+import styled from 'styled-components';
+import {ITask, ITaskList} from './types';
 
 interface Props {
     taskList: ITaskList;
@@ -30,14 +30,14 @@ export default function TaskList({
                                      taskList
                                  }: Props) {
     return (
-        <Draggable draggableId={taskList?.id ?? ""} index={index}>
+        <Draggable draggableId={taskList?.id ?? ''} index={index}>
             { provided =>
                 <Container
                     {...provided.draggableProps}
                     ref={provided.innerRef}
                 >
                     <div className="taskList gray-medium rounded my-2 mx-1 px-2 py-1">
-                        <div className="taskListHeader row mb-1 mx-0 px-1" {...provided.dragHandleProps} style={{cursor: "pointer"}}>
+                        <div className="taskListHeader row mb-1 mx-0 px-1" {...provided.dragHandleProps} style={{cursor: 'pointer'}}>
                                 <RenameInput
                                     actualName={taskList.name}
                                     onRenamed={(newName => onTaskListRenamed(taskList, newName))}
@@ -51,7 +51,7 @@ export default function TaskList({
                                 <i className='fa fa-trash'/>
                             </button>
                         </div>
-                        <Droppable droppableId={taskList?.id ?? ""} type="TASKS">
+                        <Droppable droppableId={taskList?.id ?? ''} type="TASKS">
                             { provided => (
                                 <TaskContainer
                                     ref={provided.innerRef}

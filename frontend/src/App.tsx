@@ -1,15 +1,15 @@
 import React, {useEffect} from 'react';
 import './App.css';
-import TaskListGenerator from "./TaskListGenerator";
+import TaskListGenerator from './TaskListGenerator';
 import produce from 'immer';
-import TaskList from "./TaskList";
-import axios from "axios";
-import useStateCallback from "./useStateCallback";
+import TaskList from './TaskList';
+import axios from 'axios';
+import useStateCallback from './useStateCallback';
 import {DragDropContext, DraggableLocation, Droppable, DropResult} from 'react-beautiful-dnd';
-import styled from "styled-components";
+import styled from 'styled-components';
 import {v4 as uuidv4} from 'uuid';
-import {IBoard, ITask, ITaskList} from "./types";
-import useWebSocket from "react-use-websocket";
+import {IBoard, ITask, ITaskList} from './types';
+import useWebSocket from 'react-use-websocket';
 
 
 interface State {
@@ -31,9 +31,9 @@ export default function App() {
     const [state, setState] = useStateCallback<State>({
         boardId: undefined,
         board: {
-            url: "-",
+            url: '-',
             version: -1,
-            name: "-",
+            name: '-',
             lists: [],
         },
     });
@@ -41,13 +41,13 @@ export default function App() {
     const {lastJsonMessage} = useWebSocket(
         `ws://localhost:3512/board/${state.boardId}/watch`,
         {
-            onOpen: _ => console.log("Websocket opened"),
+            onOpen: _ => console.log('Websocket opened'),
             onMessage: message => console.log(`Received ${message.data}`),
             shouldReconnect: _ => true,
         });
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(fetchBoard, []) // empty dependency array so that hook is only called when component is mounted/unmounted
+    useEffect(fetchBoard, []); // empty dependency array so that hook is only called when component is mounted/unmounted
 
     const urlParams = new URLSearchParams(window.location.search);
     const boardId = urlParams.get('boardId');
@@ -55,14 +55,14 @@ export default function App() {
         console.error('Failed to retrieve board_id query parameter!');
     } else if (boardId !== state.boardId) {
         setState(produce(draft => {
-            draft.boardId = boardId
+            draft.boardId = boardId;
         }));
     }
 
     handleSocketMessage(lastJsonMessage);
 
     if (state.boardId === null) {
-        return (<div className="container-fluid"><p>No board selected!</p></div>)
+        return (<div className="container-fluid"><p>No board selected!</p></div>);
     }
 
     function updateTaskList(
@@ -73,7 +73,7 @@ export default function App() {
         let taskListIndex = state.board.lists.indexOf(taskList);
         const boardProducer = produce<IBoard>(draft => {
             draft.lists[taskListIndex] = taskListProducer(taskList);
-        })
+        });
 
         updateBoard(boardProducer, preview);
     }
@@ -87,7 +87,7 @@ export default function App() {
                 const board = processBoardFromExternalSource(response.data);
                 setState(produce(draft => {
                     draft.board = board;
-                }))
+                }));
             })
             .catch(error => {
                 console.error(`Failed to patch task list ${updatedBoard}`);
@@ -109,7 +109,7 @@ export default function App() {
                 const board = processBoardFromExternalSource(response.data);
                 setState(produce(draft => {
                     draft.board = board;
-                }))
+                }));
             })
             .catch(error => {
                 console.error('Failed to retrieve state!');
@@ -119,18 +119,18 @@ export default function App() {
 
     function handleSocketMessage(jsonMessage: any) {
         if (!lastJsonMessage) return;
-        const newBoard = processBoardFromExternalSource(jsonMessage as IBoard)
+        const newBoard = processBoardFromExternalSource(jsonMessage as IBoard);
         
         if (newBoard.id !== state.board.id) {
-            console.warn(`Received board with wrong id from socket:`, newBoard)
+            console.warn('Received board with wrong id from socket:', newBoard);
             return;
         }
         if (newBoard.version <= state.board.version) {
-            console.debug(`Received board version '${newBoard.version}' witch is lower or equal to current version '${state.board.version}':`, newBoard)
+            console.debug(`Received board version '${newBoard.version}' witch is lower or equal to current version '${state.board.version}':`, newBoard);
             return;
         }
         
-        console.debug(`Updating board with version sent by socket:`, newBoard)
+        console.debug('Updating board with version sent by socket:', newBoard);
         setState(produce(draft => {
             draft.board = newBoard;
         }));
@@ -150,7 +150,7 @@ export default function App() {
         return board;
     }
 
-    function handleCreateNewTaskList(name = "New ToDo List") {
+    function handleCreateNewTaskList(name = 'New ToDo List') {
         let newTaskList: ITaskList = {
             id: uuidv4(),
             name: name,
@@ -163,7 +163,7 @@ export default function App() {
         updateBoard(boardProducer, false);
     }
 
-    function handleAddTaskToTaskList(taskList: ITaskList, name = "New Task", isDone = false): void {
+    function handleAddTaskToTaskList(taskList: ITaskList, name = 'New Task'): void {
         let newTask: ITask = {
             id: uuidv4(),
             name,
@@ -172,7 +172,7 @@ export default function App() {
         const taskListProducer = produce<ITaskList>(draft => {
             draft.tasks.push(newTask);
         });
-        updateTaskList(taskList, taskListProducer, false)
+        updateTaskList(taskList, taskListProducer, false);
     }
 
     function handleRemoveTaskList(taskList: ITaskList): void {

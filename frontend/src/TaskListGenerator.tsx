@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 
 interface Props {
     onGenerate: () => void;
@@ -14,4 +14,4 @@ export default function TaskListGenerator({onGenerate}: Props) {
             + Add new list
         </button>
     );
-};
+}
