@@ -20,21 +20,19 @@
     "@types/react-beautiful-dnd": "^13.1.4",
     "@types/react-dom": "^18.0.11",
     "@types/styled-components": "^5.1.26",
+    "@typescript-eslint/parser": "^5.56.0",
     "@vitejs/plugin-react": "^3.1.0",
+    "eslint": "^8.36.0",
+    "eslint-config-react-app": "^7.0.1",
     "typescript": "^5.0.2",
-    "vite": "^4.2.1"
+    "vite": "^4.2.1",
+    "vite-plugin-eslint": "^1.8.1"
   },
   "scripts": {
     "start": "vite",
     "start:https": "HTTPS=true vite",
     "build": "vite build",
     "build:https": "HTTPS=true npm run build"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
   },
   "author": "Lukas Schwarz"
 }

@@ -19,10 +19,6 @@ interface Props {
 
 const Container = styled.div``;
 const TaskContainer = styled.div``;
-const DragHandle = styled.div`
-  cursor: pointer;
-  position: relative;
-`;
 
 export default function TaskList({
                                      onAddTaskToTaskList,

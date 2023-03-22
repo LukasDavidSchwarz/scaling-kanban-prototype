@@ -41,9 +41,9 @@ export default function App() {
     const {lastJsonMessage} = useWebSocket(
         `ws://localhost:3512/board/${state.boardId}/watch`,
         {
-            onOpen: () => console.log("Websocket opened"),
+            onOpen: _ => console.log("Websocket opened"),
             onMessage: message => console.log(`Received ${message.data}`),
-            shouldReconnect: (closeEvent) => true,
+            shouldReconnect: _ => true,
         });
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
