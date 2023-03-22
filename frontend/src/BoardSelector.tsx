@@ -1,7 +1,3 @@
 export default function BoardSelector() {
-    return (
-        <div>
-            
-        </div>
-    );
+    return <div></div>;
 }

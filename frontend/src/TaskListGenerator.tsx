@@ -4,7 +4,7 @@ interface Props {
     onGenerate: () => void;
 }
 
-export default function TaskListGenerator({onGenerate}: Props) {
+export default function TaskListGenerator({ onGenerate }: Props) {
     return (
         <button
             onClick={() => onGenerate()}

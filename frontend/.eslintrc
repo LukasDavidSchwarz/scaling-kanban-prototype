@@ -1,10 +1,7 @@
 {
-  "extends": [
-    "eslint:recommended",
-    "react-app"
-  ],
-  "rules": {
-    "semi": "error",
-    "quotes": ["error", "single"]
-  }
+    "extends": ["eslint:recommended", "react-app"],
+    "rules": {
+        "semi": "error",
+        "quotes": ["error", "single"]
+    }
 }

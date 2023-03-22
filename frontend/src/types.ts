@@ -1,9 +1,9 @@
 export interface IBoard {
-    id?: string,
-    url: string,
-    version: number,
-    name: string,
-    lists: ITaskList[],
+    id?: string;
+    url: string;
+    version: number;
+    name: string;
+    lists: ITaskList[];
 }
 
 export interface ITaskList {
