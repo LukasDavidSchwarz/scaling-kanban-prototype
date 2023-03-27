@@ -79,7 +79,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .default_database()
         .expect("No database specified in mongo connection string!")
         .collection::<Board>("boards");
-    let board = ensure_atleast_one_board(&boards_table).await?;
+    let board = ensure_at_least_one_board(&boards_table).await?;
 
     let nats = async_nats::connect(cli.pubsub_connection_url).await?;
     let frontend_app = fs::read_to_string(cli.frontend_file)?;
@@ -92,9 +92,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let app = Router::new()
         .route("/", get(index_handler))
-        .route("/board/:board_id", get(get_boards_id::handler))
-        .route("/board/:board_id", put(put_boards_id::handler))
-        .route("/board/:board_id/watch", get(websocket_handler))
+        .route("/api/v1/board/:board_id", get(get_boards_id::handler))
+        .route("/api/v1/board/:board_id", put(put_boards_id::handler))
+        .route("/api/v1/board/:board_id/watch", get(websocket_handler))
         .with_state(shared_state)
         .layer(
             tower_http::trace::TraceLayer::new_for_http().make_span_with(
@@ -132,7 +132,7 @@ async fn connect_to_mongo(cli: &Cli) -> Result<MongoClient, Box<dyn Error>> {
     Ok(db)
 }
 
-async fn ensure_atleast_one_board(
+async fn ensure_at_least_one_board(
     board_table: &Collection<Board>,
 ) -> Result<Board, Box<dyn Error>> {
     let board_count = board_table.estimated_document_count(None).await?;
