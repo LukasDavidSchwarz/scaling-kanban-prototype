@@ -154,16 +154,6 @@ export default function App() {
 
     function processBoardFromExternalSource(board: IBoard) {
         // TODO: Validate json
-        produce(board, (draft) => {
-            draft.lists.forEach((list) =>
-                list.tasks.forEach((task) => {
-                    // @ts-ignore
-                    task.isDone = task['is_done'];
-                    // @ts-ignore
-                    task['is_done'] = undefined;
-                })
-            );
-        });
         return board;
     }
 
