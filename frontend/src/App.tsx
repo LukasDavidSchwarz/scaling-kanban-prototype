@@ -16,8 +16,9 @@ interface State {
     board: IBoard;
 }
 
-//TODO: use environment variable to determine api endpoint
-const TASK_LIST_ENDPOINT = 'http://0.0.0.0:3512/board';
+const env = import.meta.env;
+const REST_API_URL = `${env.VITE_REST_API_PROTOCOL}${env.VITE_API_HOST}/api/v1`;
+const WS_API_URL = `${env.VITE_WS_API_PROTOCOL}${env.VITE_API_HOST}/api/v1`;
 
 const TASK_LIST_DROPPABLE_TYPE = 'TASK_LIST';
 
@@ -36,7 +37,7 @@ export default function App() {
         },
     });
 
-    const { lastJsonMessage } = useWebSocket(`ws://localhost:3512/board/${state.boardId}/watch`, {
+    const { lastJsonMessage } = useWebSocket(`${WS_API_URL}/board/${state.boardId}/watch`, {
         onOpen: (_) => console.log('Websocket opened'),
         onMessage: (message) => console.log(`Received ${message.data}`),
         shouldReconnect: (_) => true,
@@ -85,7 +86,7 @@ export default function App() {
 
         const updatedBoard = boardProducer(state.board);
         axios
-            .put(`${TASK_LIST_ENDPOINT}/${state.board.id}`, updatedBoard)
+            .put(`${REST_API_URL}/board/${state.board.id}`, updatedBoard)
             .then((response) => {
                 const board = processBoardFromExternalSource(response.data);
                 setState(
@@ -112,7 +113,7 @@ export default function App() {
         if (state.boardId === null) return;
 
         axios
-            .get(`${TASK_LIST_ENDPOINT}/${state.boardId}`)
+            .get(`${REST_API_URL}/board/${state.boardId}`)
             .then((response) => {
                 const board = processBoardFromExternalSource(response.data);
                 setState(
