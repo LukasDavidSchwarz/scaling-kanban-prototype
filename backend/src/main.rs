@@ -80,17 +80,30 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .expect("No database specified in mongo connection string!")
         .collection::<Board>("boards");
     let board = ensure_at_least_one_board(&boards_table).await?;
-
     let nats = async_nats::connect(cli.pubsub_connection_url).await?;
     let frontend_app = fs::read_to_string(cli.frontend_file)?;
-
     let shared_state = Arc::new(AppState {
         boards_table,
         nats,
         frontend_app,
     });
 
-    let app = Router::new()
+    let app = app(shared_state);
+    info!("Listening on http://{}", cli.backend_address);
+    info!(
+        "Open http://{}?boardId={} to get started",
+        cli.backend_address, board.id
+    );
+    axum::Server::bind(&cli.backend_address)
+        .serve(app.into_make_service_with_connect_info::<SocketAddr>())
+        .await?;
+
+    info!("Server stopped");
+    Ok(())
+}
+
+fn app(shared_state: Arc<AppState>) -> Router {
+    Router::new()
         .route("/", get(index_handler))
         .route("/api/v1/board/:board_id", get(get_boards_id::handler))
         .route("/api/v1/board/:board_id", put(put_boards_id::handler))
@@ -107,19 +120,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 .allow_methods(Any)
                 .allow_origin(Any)
                 .allow_headers(Any),
-        );
-
-    info!("Listening on http://{}", cli.backend_address);
-    info!(
-        "Open http://{}?boardId={} to get started",
-        cli.backend_address, board.id
-    );
-    axum::Server::bind(&cli.backend_address)
-        .serve(app.into_make_service_with_connect_info::<SocketAddr>())
-        .await?;
-
-    info!("Server stopped");
-    Ok(())
+        )
 }
 
 async fn connect_to_mongo(cli: &Cli) -> Result<MongoClient, Box<dyn Error>> {

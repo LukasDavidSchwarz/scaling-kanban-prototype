@@ -10,6 +10,7 @@ pub type BoardId = Uuid;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Board {
+    #[serde(default)]
     pub id: BoardId,
     pub url: String,
     pub version: u64,
@@ -19,13 +20,15 @@ pub struct Board {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct TaskList {
+    #[serde(default)]
     pub id: Uuid,
     pub name: String,
-    pub tasks: Vec<Card>,
+    pub tasks: Vec<Task>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Card {
+pub struct Task {
+    #[serde(default)]
     pub id: Uuid,
     pub name: String,
 }
@@ -38,7 +41,7 @@ impl Board {
 
 impl Default for Board {
     fn default() -> Self {
-        let card = Card {
+        let task = Task {
             id: Uuid::new(),
             name: "Buy apples".to_string(),
         };
@@ -46,7 +49,7 @@ impl Default for Board {
         let list = TaskList {
             id: Uuid::new(),
             name: "Grocery list".to_string(),
-            tasks: vec![card],
+            tasks: vec![task],
         };
 
         Board {
