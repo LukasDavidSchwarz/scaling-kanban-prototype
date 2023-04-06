@@ -15,8 +15,6 @@ services:
       - PUBSUB_CONNECTION_URL=nats://pubsub:4222
     ports:
       - "3512:3512"
-    networks:
-      - backend
     volumes:
       - ./backend:/src
     depends_on:
@@ -31,8 +29,6 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: rootpassword
     ports:
       - "27018:27017"
-    networks:
-      - backend
     volumes:
       - mongodb_data_container:/data/database
 
@@ -41,11 +37,7 @@ services:
     restart: on-failure
     ports:
       - "4223:4222"
-    networks:
-      - backend
 
 volumes:
   mongodb_data_container: {}
 
-networks:
-  backend: {}
