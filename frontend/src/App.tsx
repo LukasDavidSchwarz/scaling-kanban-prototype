@@ -37,7 +37,7 @@ export default function App() {
         },
     });
 
-    const { lastJsonMessage } = useWebSocket(`${WS_API_URL}/board/${state.boardId}/watch`, {
+    const { lastJsonMessage } = useWebSocket(`${WS_API_URL}/boards/${state.boardId}/watch`, {
         onOpen: (_) => console.log('Websocket opened'),
         onMessage: (message) => console.log(`Received ${message.data}`),
         shouldReconnect: (_) => true,
@@ -49,7 +49,9 @@ export default function App() {
     const urlParams = new URLSearchParams(window.location.search);
     const boardId = urlParams.get('boardId');
     if (boardId === null) {
-        console.error('Failed to retrieve board_id query parameter!');
+        axios.get(`${WS_API_URL}/boards`).then((resp) => {
+            let boards = resp.data as IBoard[];
+        });
     } else if (boardId !== state.boardId) {
         setState(
             produce((draft) => {
@@ -86,7 +88,7 @@ export default function App() {
 
         const updatedBoard = boardProducer(state.board);
         axios
-            .put(`${REST_API_URL}/board/${state.board.id}`, updatedBoard)
+            .put(`${REST_API_URL}/boards/${state.board.id}`, updatedBoard)
             .then((response) => {
                 const board = processBoardFromExternalSource(response.data);
                 setState(
@@ -113,7 +115,7 @@ export default function App() {
         if (state.boardId === null) return;
 
         axios
-            .get(`${REST_API_URL}/board/${state.boardId}`)
+            .get(`${REST_API_URL}/boards/${state.boardId}`)
             .then((response) => {
                 const board = processBoardFromExternalSource(response.data);
                 setState(

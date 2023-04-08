@@ -2,12 +2,29 @@ version: "3.7"
 
 services:
 
+  frontend:
+    build:
+      context: frontend
+    restart: on-failure
+    environment:
+      - VITE_HOST=0.0.0.0
+      - VITE_PORT=3216
+      - VITE_API_HOST=localhost:3512
+      - VITE_REST_API_PROTOCOL=http://
+      - VITE_WS_API_PROTOCOL=ws://
+      - VITE_APP_TITLE=Kanban App (dev)
+    ports:
+      - "3216:3216"
+    volumes:
+      - ./frontend:/frontend
+
   backend:
     build:
       context: backend
       target: development-watch
     restart: on-failure
     environment:
+      - ENV=development
       - BACKEND_ADDRESS=0.0.0.0:3512
       - DB_CONNECTION_TIMEOUT_MS=10000
       - DB_CONNECTION_URL=mongodb://root:rootpassword@database:27017
@@ -16,7 +33,7 @@ services:
     ports:
       - "3512:3512"
     volumes:
-      - ./backend:/src
+      - ./backend:/backend
     depends_on:
       - database
       - pubsub
@@ -40,4 +57,3 @@ services:
 
 volumes:
   mongodb_data_container: {}
-

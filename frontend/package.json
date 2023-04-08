@@ -9,6 +9,7 @@
     "react": "^18.2.0",
     "react-beautiful-dnd": "^13.1.1",
     "react-dom": "^18.2.0",
+    "react-router-dom": "^6.10.0",
     "react-fontawesome": "^1.7.1",
     "react-textarea-autosize": "^8.4.1",
     "react-use-websocket": "^4.3.1",
@@ -31,10 +32,8 @@
     "vite-plugin-eslint": "^1.8.1"
   },
   "scripts": {
-    "start": "vite",
-    "start:https": "HTTPS=true vite",
-    "build": "vite build",
-    "build:https": "HTTPS=true npm run build"
+    "dev": "vite",
+    "build": "vite build"
   },
   "author": "Lukas Schwarz"
 }

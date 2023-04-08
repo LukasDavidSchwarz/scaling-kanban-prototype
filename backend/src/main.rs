@@ -1,14 +1,13 @@
 mod boards;
 mod connection;
 
-use crate::boards::{get_boards_id, put_boards_id, Board};
+use crate::boards::{get_boards, get_boards_id, put_boards_id, Board};
 use crate::connection::websocket_handler;
 
 use async_nats::Client as NatsClient;
 
+use axum::routing::get_service;
 use axum::{
-    extract::State,
-    response::Html,
     routing::{get, put},
     Router,
 };
@@ -16,13 +15,14 @@ use clap::Parser;
 use mongodb::options::ClientOptions as MongoClientOptions;
 use mongodb::{Client as MongoClient, Collection};
 use std::error::Error;
-use std::fs;
+use std::fs::canonicalize;
 use std::net::SocketAddr;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Duration;
 use tower_http::cors::{Any, CorsLayer};
-use tracing::{info, trace};
+use tower_http::services::ServeDir;
+use tracing::{error, info};
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 
@@ -50,15 +50,14 @@ pub struct Cli {
     /// The timeout for establishing connections to the database in seconds
     db_connect_timeout_s: usize,
 
-    #[arg(env, default_value("static/board.html"))]
-    /// The path to the .html file that contains the frontend
-    frontend_file: PathBuf,
+    #[arg(env)]
+    /// The path to the frontend build (relative to $CARGO_MANIFEST_DIR environment variable)
+    frontend_build: Option<PathBuf>,
 }
 
 pub struct AppState {
     boards_table: Collection<Board>,
     nats: NatsClient,
-    frontend_app: String,
 }
 
 #[tokio::main]
@@ -72,24 +71,20 @@ async fn main() -> Result<(), Box<dyn Error>> {
         )
         .with(tracing_subscriber::fmt::layer())
         .init();
-    info!("Starting server");
 
+    // setup DB and Pub/Sub connections
     let mongo = connect_to_mongo(&cli).await?;
     let boards_table = mongo
         .default_database()
         .expect("No database specified in mongo connection string!")
         .collection::<Board>("boards");
     let board = ensure_at_least_one_board(&boards_table).await?;
+    info!("Connecting to nats at '{}'...", cli.pubsub_connection_url);
     let nats = async_nats::connect(cli.pubsub_connection_url).await?;
-    let frontend_app = fs::read_to_string(cli.frontend_file)?;
-    let shared_state = Arc::new(AppState {
-        boards_table,
-        nats,
-        frontend_app,
-    });
+    let shared_state = Arc::new(AppState { boards_table, nats });
 
-    let app = app(shared_state);
-    info!("Listening on http://{}", cli.backend_address);
+    let app = app(shared_state, cli.frontend_build)?;
+    info!("Starting server...");
     info!(
         "Open http://{}?boardId={} to get started",
         cli.backend_address, board.id
@@ -102,25 +97,45 @@ async fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn app(shared_state: Arc<AppState>) -> Router {
-    Router::new()
-        .route("/", get(index_handler))
-        .route("/api/v1/board/:board_id", get(get_boards_id::handler))
-        .route("/api/v1/board/:board_id", put(put_boards_id::handler))
-        .route("/api/v1/board/:board_id/watch", get(websocket_handler))
+fn app(
+    shared_state: Arc<AppState>,
+    frontend_app_dir: Option<PathBuf>,
+) -> Result<Router, Box<dyn Error>> {
+    let mut app = Router::new()
+        .route("/api/v1/boards", get(get_boards::handler))
+        .route("/api/v1/boards/:board_id", get(get_boards_id::handler))
+        .route("/api/v1/boards/:board_id", put(put_boards_id::handler))
+        .route("/api/v1/boards/:board_id/watch", get(websocket_handler))
         .with_state(shared_state)
         .layer(
             tower_http::trace::TraceLayer::new_for_http().make_span_with(
                 tower_http::trace::DefaultMakeSpan::default().include_headers(true),
             ),
         )
-        // TODO: Set better Cors policy:
+        // TODO: Set better CORS policy:
         .layer(
             CorsLayer::new()
                 .allow_methods(Any)
                 .allow_origin(Any)
                 .allow_headers(Any),
-        )
+        );
+
+    // register service for serving frontend app
+    if let Some(mut frontend_app_dir) = frontend_app_dir {
+        frontend_app_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(frontend_app_dir);
+        frontend_app_dir = canonicalize(&frontend_app_dir).map_err(|err| {
+            error!(
+                "Failed to canonicalize path to frontend build '{:?}': {}",
+                frontend_app_dir, err
+            );
+            err
+        })?;
+        info!("Serving frontend from: {:?}", frontend_app_dir);
+
+        app = app.fallback_service(get_service(ServeDir::new(frontend_app_dir)))
+    }
+
+    Ok(app)
 }
 
 async fn connect_to_mongo(cli: &Cli) -> Result<MongoClient, Box<dyn Error>> {
@@ -152,9 +167,4 @@ async fn ensure_at_least_one_board(
     };
 
     Ok(board)
-}
-
-async fn index_handler(State(state): State<Arc<AppState>>) -> Html<String> {
-    trace!("Sending frontend");
-    Html(state.frontend_app.clone())
 }

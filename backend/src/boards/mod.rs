@@ -3,6 +3,7 @@ use serde::Deserialize;
 use serde::Serialize;
 use std::fmt::Debug;
 
+pub mod get_boards;
 pub mod get_boards_id;
 pub mod put_boards_id;
 
@@ -12,7 +13,6 @@ pub type BoardId = Uuid;
 pub struct Board {
     #[serde(default)]
     pub id: BoardId,
-    pub url: String,
     pub version: u64,
     pub name: String,
     pub lists: Vec<TaskList>,
@@ -55,7 +55,6 @@ impl Default for Board {
         Board {
             id: Uuid::new(),
             version: 0,
-            url: "shopping-list".to_string(),
             name: "Shopping list".to_string(),
             lists: vec![list],
         }
