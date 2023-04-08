@@ -1,10 +1,10 @@
 use mongodb::bson::Uuid;
-use serde::Deserialize;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 
 pub mod get_boards;
 pub mod get_boards_id;
+pub mod post_boards;
 pub mod put_boards_id;
 
 pub type BoardId = Uuid;
@@ -34,6 +34,15 @@ pub struct Task {
 }
 
 impl Board {
+    pub fn new(name: String) -> Self {
+        Board {
+            id: Uuid::new(),
+            version: 0,
+            name,
+            lists: vec![],
+        }
+    }
+
     pub fn pubsub_subject(&self) -> String {
         pubsub_subject(&self.id)
     }

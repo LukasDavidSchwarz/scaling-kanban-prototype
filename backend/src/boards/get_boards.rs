@@ -16,7 +16,7 @@ pub async fn handler(
         .find(None, None)
         .await
         .map_err(|error| {
-            error!(?error, "Failed to query board");
+            error!(?error, "Failed to query boards");
             StatusCode::INTERNAL_SERVER_ERROR
         })?
         .try_collect::<Vec<_>>()

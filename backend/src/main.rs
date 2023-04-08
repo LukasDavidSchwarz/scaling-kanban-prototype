@@ -1,14 +1,14 @@
 mod boards;
 mod connection;
 
-use crate::boards::{get_boards, get_boards_id, put_boards_id, Board};
+use crate::boards::{get_boards, get_boards_id, post_boards, put_boards_id, Board};
 use crate::connection::websocket_handler;
 
 use async_nats::Client as NatsClient;
 
 use axum::routing::get_service;
 use axum::{
-    routing::{get, put},
+    routing::{get, post, put},
     Router,
 };
 use clap::Parser;
@@ -78,17 +78,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .default_database()
         .expect("No database specified in mongo connection string!")
         .collection::<Board>("boards");
-    let board = ensure_at_least_one_board(&boards_table).await?;
+    ensure_at_least_one_board(&boards_table).await?;
     info!("Connecting to nats at '{}'...", cli.pubsub_connection_url);
     let nats = async_nats::connect(cli.pubsub_connection_url).await?;
     let shared_state = Arc::new(AppState { boards_table, nats });
 
     let app = app(shared_state, cli.frontend_build)?;
     info!("Starting server...");
-    info!(
-        "Open http://{}?boardId={} to get started",
-        cli.backend_address, board.id
-    );
+    info!("Open http://{} to get started", cli.backend_address);
     axum::Server::bind(&cli.backend_address)
         .serve(app.into_make_service_with_connect_info::<SocketAddr>())
         .await?;
@@ -103,6 +100,7 @@ fn app(
 ) -> Result<Router, Box<dyn Error>> {
     let mut app = Router::new()
         .route("/api/v1/boards", get(get_boards::handler))
+        .route("/api/v1/boards", post(post_boards::handler))
         .route("/api/v1/boards/:board_id", get(get_boards_id::handler))
         .route("/api/v1/boards/:board_id", put(put_boards_id::handler))
         .route("/api/v1/boards/:board_id/watch", get(websocket_handler))
