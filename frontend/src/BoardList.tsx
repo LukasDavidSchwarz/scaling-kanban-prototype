@@ -17,6 +17,7 @@ export default function BoardList() {
     });
 
     axios.get(`${REST_API_URL}/boards`).then((resp) => {
+        // TODO: Validate json
         let boards = resp.data as IBoard[];
         setState((_) => ({
             boards,
