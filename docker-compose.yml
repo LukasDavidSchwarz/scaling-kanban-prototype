@@ -8,13 +8,13 @@ services:
     restart: on-failure
     environment:
       - VITE_HOST=0.0.0.0
-      - VITE_PORT=3216
-      - VITE_API_HOST=localhost:3512
+      - VITE_PORT=3500
+      - VITE_API_HOST=localhost:3400
       - VITE_REST_API_PROTOCOL=http://
       - VITE_WS_API_PROTOCOL=ws://
       - VITE_APP_TITLE=Kanban App (dev)
     ports:
-      - "3216:3216"
+      - "3500:3500"
     volumes:
       - ./frontend:/frontend
 
@@ -25,13 +25,13 @@ services:
     restart: on-failure
     environment:
       - ENV=development
-      - BACKEND_ADDRESS=0.0.0.0:3512
+      - BACKEND_ADDRESS=0.0.0.0:3400
       - DB_CONNECTION_TIMEOUT_MS=10000
       - DB_CONNECTION_URL=mongodb://root:rootpassword@database:27017
       - DB_NAME=kanban
       - PUBSUB_CONNECTION_URL=nats://pubsub:4222
     ports:
-      - "3512:3512"
+      - "3400:3400"
     volumes:
       - ./backend:/backend
     depends_on:

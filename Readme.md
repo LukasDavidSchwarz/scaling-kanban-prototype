@@ -5,7 +5,10 @@ This project is a prototype of a scaling architecture for a Kanban web app.
 I did this to get some experience with technology I was curious about (mainly Rust Backend, Websockets and Pub/Sub).
 
 # How to run
-// TODO
+Simply run `docker compose up --attach backend` and open http://localhost:3500.
+
+# TODO:
+Use docker swarm and a load balancer to test out scaling of the app
 
 # Architecture
 
