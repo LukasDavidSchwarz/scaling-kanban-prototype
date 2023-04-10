@@ -41,6 +41,7 @@ services:
       - type: bind
         source: ./frontend
         target: /frontend
+        read_only: true
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.frontend.entrypoints=frontend"
@@ -64,6 +65,7 @@ services:
       - type: bind
         source: ./backend
         target: /backend
+        read_only: true
     depends_on:
       - database
       - pubsub
