@@ -1,6 +1,7 @@
-FROM rust:1.67-buster AS base
+FROM rust:1.68-buster AS base
 
 ENV CARGO_TARGET_DIR=../backend_build
+ENV CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse
 
 WORKDIR /backend
 COPY . .
