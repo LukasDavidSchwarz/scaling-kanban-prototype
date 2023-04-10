@@ -1,10 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import './App.css';
 import TaskListGenerator from './TaskListGenerator';
 import produce from 'immer';
 import TaskList from './TaskList';
 import axios from 'axios';
-import useStateCallback from './useStateCallback';
 import { DragDropContext, DraggableLocation, Droppable, DropResult } from 'react-beautiful-dnd';
 import styled from 'styled-components';
 import { v4 as uuidv4 } from 'uuid';
@@ -27,7 +26,7 @@ const TaskListContainer = styled.div`
 `;
 
 export default function Board() {
-    const [state, setState] = useStateCallback<State>({
+    const [state, setState] = useState<State>({
         board: {
             url: '-',
             version: -1,

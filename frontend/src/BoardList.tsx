@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
-import React, { Fragment } from 'react';
-import useStateCallback from './useStateCallback';
+import React, { Fragment, useState } from 'react';
 import axios from 'axios';
 import { IBoard } from './types';
 
@@ -12,7 +11,7 @@ const env = import.meta.env;
 const REST_API_URL = `${env.VITE_REST_API_PROTOCOL}${env.VITE_API_HOST}/api/v1`;
 
 export default function BoardList() {
-    const [state, setState] = useStateCallback<State>({
+    const [state, setState] = useState<State>({
         boards: undefined,
     });
 
