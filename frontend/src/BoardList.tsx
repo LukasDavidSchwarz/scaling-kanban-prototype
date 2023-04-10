@@ -16,13 +16,19 @@ export default function BoardList() {
         boards: undefined,
     });
 
-    axios.get(`${REST_API_URL}/boards`).then((resp) => {
-        // TODO: Validate json
-        let boards = resp.data as IBoard[];
-        setState((_) => ({
-            boards,
-        }));
-    });
+    // TODO: Move this into periodic callback
+    axios
+        .get(`${REST_API_URL}/boards`)
+        .then((resp) => {
+            // TODO: Validate json
+            let boards = resp.data as IBoard[];
+            setState((_) => ({
+                boards,
+            }));
+        })
+        .catch((err) => {
+            console.error('Failed to retrieve boards!', err);
+        });
 
     if (!state.boards) {
         return (
