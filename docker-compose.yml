@@ -12,11 +12,11 @@ services:
       - "--api.insecure=true"  # <- DON'T USE THIS LINE IN PRODUCTION
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.frontend.address=:3500"
-      - "--entrypoints.backend.address=:3400"
+      - "--entrypoints.frontend.address=:${FRONTEND_PORT}"
+      - "--entrypoints.backend.address=:${BACKEND_PORT}"
     ports:
-      - "3500:3500"
-      - "3400:3400"
+      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
+      - "${BACKEND_PORT}:${BACKEND_PORT}"
       - "8080:8080"
     volumes:
       - type: bind
@@ -30,13 +30,13 @@ services:
     restart: on-failure
     environment:
       - VITE_HOST=0.0.0.0
-      - VITE_PORT=3500
-      - VITE_API_HOST=localhost:3400
+      - VITE_PORT=${FRONTEND_PORT}
+      - VITE_API_HOST=localhost:${BACKEND_PORT}
       - VITE_REST_API_PROTOCOL=http://
       - VITE_WS_API_PROTOCOL=ws://
       - VITE_APP_TITLE=Kanban App (dev)
     expose:
-      - "3500"
+      - "${FRONTEND_PORT}"
     volumes:
       - type: bind
         source: ./frontend
@@ -54,13 +54,13 @@ services:
     restart: on-failure
     environment:
       - ENV=development
-      - BACKEND_ADDRESS=0.0.0.0:3400
+      - BACKEND_ADDRESS=0.0.0.0:${BACKEND_PORT}
       - DB_CONNECTION_TIMEOUT_MS=10000
-      - DB_CONNECTION_URL=mongodb://root:rootpassword@database:27017
+      - DB_CONNECTION_URL=mongodb://${DB_USERNAME}:${DB_PASSWORD}@database:${DB_PORT}
       - DB_NAME=kanban
-      - PUBSUB_CONNECTION_URL=nats://pubsub:4222
+      - PUBSUB_CONNECTION_URL=nats://pubsub:${PUBSUB_PORT}
     expose:
-      - "3400"
+      - "${BACKEND_PORT}"
     volumes:
       - type: bind
         source: ./backend
@@ -78,8 +78,8 @@ services:
     image: mongo:6
     restart: on-failure
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+      MONGO_INITDB_ROOT_USERNAME: ${DB_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
     volumes:
       - mongodb_data_container:/data/database
 
