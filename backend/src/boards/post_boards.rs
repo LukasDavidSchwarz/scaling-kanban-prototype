@@ -6,13 +6,14 @@ use mongodb::bson::doc;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use std::sync::Arc;
-use tracing::error;
+use tracing::{error, instrument};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct BoardDTO {
     name: String,
 }
 
+#[instrument(skip(app_state))]
 pub async fn handler(
     State(app_state): State<Arc<AppState>>,
     Json(new_board_dto): Json<BoardDTO>,
