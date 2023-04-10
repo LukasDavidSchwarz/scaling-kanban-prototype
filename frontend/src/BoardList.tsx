@@ -43,6 +43,7 @@ export default function BoardList() {
             <h2>Boards:</h2>
             {state.boards.map((board, index) => (
                 <Link
+                    key={board.id}
                     className="dropdown-item"
                     to={`/boards/${board.id}`}
                     style={{ color: 'white' }}
