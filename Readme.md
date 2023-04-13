@@ -1,13 +1,13 @@
 # Scaling Kanban Web App
 
-This project is a prototype of a scaling architecture for a Kanban web app with live updates via websockets.
+This project is a prototype of a scaling architecture for a collaborative Kanban web app with live updates via websockets.
 
 I did this to gain more experience with technologies I was curious about:
 - Docker compose
 - Rust backend
 - Websockets
 - Pub/Sub 
-- Load balancing
+- Distributing load between multiple backends
 
 # How to run
 1. Clone the repository.
@@ -15,13 +15,11 @@ I did this to gain more experience with technologies I was curious about:
 3. Open http://localhost:3500 and select a board.
 4. Open the board in multiple tabs and make changes to the board. The changes should be synchronized between all tabs
 
-Run `docker compose logs -f backend` to see that multiple backends are used.
-
 # Architecture
 
 I wanted to create a solution that would support editing of the same kanban boards by multiple users across multiple backend instances.
 
-### Proxy & load balancer: Traefik
+### Reverse proxy & load balancer: Traefik
 Was really easy to set up: The configuration is completely inside the docker compose file.
 Traefik also reacts to up and down scaling without restarts and the configuration can be inspected via a frontend on http://localhost:8080.
 
