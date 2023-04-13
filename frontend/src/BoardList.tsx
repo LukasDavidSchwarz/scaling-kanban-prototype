@@ -1,6 +1,6 @@
 import './BoardList.css';
 import { Link } from 'react-router-dom';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { IBoard } from './types';
 
@@ -16,19 +16,20 @@ export default function BoardList() {
         boards: [],
     });
 
-    // TODO: Move this into periodic callback
-    axios
-        .get(`${REST_API_URL}/boards`)
-        .then((resp) => {
-            // TODO: Validate json
-            let boards = resp.data as IBoard[];
-            setState((_) => ({
-                boards,
-            }));
-        })
-        .catch((err) => {
-            console.error('Failed to retrieve boards!', err);
-        });
+    useEffect(() => {
+        axios
+            .get(`${REST_API_URL}/boards`)
+            .then((resp) => {
+                // TODO: Validate json
+                let boards = resp.data as IBoard[];
+                setState((_) => ({
+                    boards,
+                }));
+            })
+            .catch((err) => {
+                console.error('Failed to retrieve boards!', err);
+            });
+    }, []);
 
     return (
         <div className="h-100 boards-background">
