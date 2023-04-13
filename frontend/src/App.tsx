@@ -11,6 +11,7 @@ export default function App() {
                 <Route path="/" element={<BoardList />} />
                 <Route path="/boards/:boardId" element={<Board />} />
             </Routes>
+            <p className="footer"> Created by Lukas Schwarz </p>
         </div>
     );
 }

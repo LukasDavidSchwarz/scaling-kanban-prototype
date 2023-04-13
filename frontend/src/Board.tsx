@@ -324,7 +324,6 @@ export default function Board() {
                     )}
                 </Droppable>
             </DragDropContext>
-            <p className="footer"> Created by Lukas Schwarz </p>
         </div>
     );
 }
