@@ -1,0 +1,17 @@
+.nameInput {
+    outline: 2px solid transparent;
+    border-color: transparent;
+    cursor: pointer;
+    background: transparent;
+    transition: background-color, outline-color;
+    transition-duration: 0.15s;
+    width: 100%;
+    resize: none;
+}
+
+.nameInput:focus {
+    cursor: text;
+    outline: 2px solid #0079bf;
+    background: white;
+    box-sizing: border-box;
+}

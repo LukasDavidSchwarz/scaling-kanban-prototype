@@ -1,3 +1,4 @@
+import './TaskListGenerator.css';
 import React from 'react';
 
 interface Props {

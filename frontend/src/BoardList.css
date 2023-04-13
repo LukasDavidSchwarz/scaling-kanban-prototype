@@ -1,0 +1,23 @@
+.boards-background {
+    background: #0089d7;
+}
+
+.boards-headline {
+    color: white;
+    text-decoration: underline;
+}
+
+.board-link, .board-link:hover {
+    text-decoration: none;
+    color: white;
+}
+
+.board-link {
+    background: #0073b4;
+    transition: background-color 50ms linear;
+}
+
+.board-link:hover {
+    background: #0066a0;
+    transition: background-color 50ms linear;
+}

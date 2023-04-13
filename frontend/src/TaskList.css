@@ -1,0 +1,29 @@
+.taskList {
+    width: 320px;
+    display: inline-block;
+    vertical-align: top;
+    line-height: 20px;
+}
+
+.taskListHeader {
+    cursor: pointer;
+}
+
+.taskListNameInput {
+    font-size: 16px !important;
+    font-weight: bold;
+    border-radius: 2px;
+}
+
+.taskListAddTaskButton {
+    transition: filter 0.15s ease-in-out;
+}
+
+.taskListAddTaskButton:focus {
+    box-shadow: none;
+    outline: none;
+}
+
+.taskListAddTaskButton:hover {
+    filter: brightness(90%) !important;
+}

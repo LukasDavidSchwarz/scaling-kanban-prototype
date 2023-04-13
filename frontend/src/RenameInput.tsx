@@ -1,3 +1,4 @@
+import './RenameInput.css';
 import React, { ChangeEvent, useRef } from 'react';
 import useStateCallback from './useStateCallback';
 import styled from 'styled-components';

@@ -1,3 +1,4 @@
+import './Task.css';
 import RenameInput from './RenameInput';
 import { Draggable } from 'react-beautiful-dnd';
 import styled from 'styled-components';

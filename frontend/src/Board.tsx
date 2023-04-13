@@ -1,3 +1,4 @@
+import './Board.css';
 import React, { useEffect, useState } from 'react';
 import './App.css';
 import TaskListGenerator from './TaskListGenerator';
@@ -5,7 +6,6 @@ import produce from 'immer';
 import TaskList from './TaskList';
 import axios from 'axios';
 import { DragDropContext, DraggableLocation, Droppable, DropResult } from 'react-beautiful-dnd';
-import styled from 'styled-components';
 import { v4 as uuidv4 } from 'uuid';
 import { IBoard, ITask, ITaskList } from './types';
 import useWebSocket from 'react-use-websocket';
@@ -20,10 +20,6 @@ const REST_API_URL = `${env.VITE_REST_API_PROTOCOL}${env.VITE_API_HOST}/api/v1`;
 const WS_API_URL = `${env.VITE_WS_API_PROTOCOL}${env.VITE_API_HOST}/api/v1`;
 
 const TASK_LIST_DROPPABLE_TYPE = 'TASK_LIST';
-
-const TaskListContainer = styled.div`
-    display: flex;
-`;
 
 export default function Board() {
     const [state, setState] = useState<State>({
@@ -303,7 +299,11 @@ export default function Board() {
                         direction="horizontal"
                     >
                         {(provided) => (
-                            <TaskListContainer ref={provided.innerRef} {...provided.droppableProps}>
+                            <div
+                                className="taskListContainer"
+                                ref={provided.innerRef}
+                                {...provided.droppableProps}
+                            >
                                 {state.board?.lists &&
                                     state.board.lists
                                         .slice()
@@ -321,7 +321,7 @@ export default function Board() {
                                         ))}
                                 {provided.placeholder}
                                 <TaskListGenerator onGenerate={handleCreateNewTaskList} />
-                            </TaskListContainer>
+                            </div>
                         )}
                     </Droppable>
                 </DragDropContext>

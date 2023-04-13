@@ -1,3 +1,4 @@
+import './BoardList.css';
 import { Link } from 'react-router-dom';
 import React, { useState } from 'react';
 import axios from 'axios';
@@ -30,18 +31,16 @@ export default function BoardList() {
         });
 
     return (
-        <div className="container">
-            <h2 className="mt-5 text-center">Boards:</h2>
-            <div className="card-columns">
-                {state.boards.map((board) => (
-                    <Link
-                        key={board.id}
-                        className="card board-link background-blue"
-                        to={`/boards/${board.id}`}
-                    >
-                        <div className="card-body">{board.name}</div>
-                    </Link>
-                ))}
+        <div className="h-100 boards-background">
+            <div className="container">
+                <h2 className="pt-5 pb-3 boards-headline text-center">Boards:</h2>
+                <div className="card-columns">
+                    {state.boards.map((board) => (
+                        <Link key={board.id} className="card board-link" to={`/boards/${board.id}`}>
+                            <div className="mb-3 card-body">{board.name}</div>
+                        </Link>
+                    ))}
+                </div>
             </div>
         </div>
     );
