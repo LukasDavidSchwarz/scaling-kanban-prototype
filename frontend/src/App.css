@@ -1,5 +1,17 @@
-body {
+html, body {
+    height: 100%
+}
+
+.background-blue {
     background-color: #07689f !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: dimgray;
+}
+
+.board-link, .board-link:hover {
+    color: white;
 }
 
 .big-checkbox {
@@ -118,8 +130,8 @@ body {
 }
 
 .footer {
-    color: white;
+    color: darkgray;
     position: fixed;
-    bottom: 0px;
+    bottom: 0;
     right: 15px;
 }

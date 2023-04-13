@@ -294,36 +294,38 @@ export default function Board() {
     }
 
     return (
-        <div className="container-fluid">
-            <DragDropContext onDragEnd={onDragEnd}>
-                <Droppable
-                    droppableId="board"
-                    type={TASK_LIST_DROPPABLE_TYPE}
-                    direction="horizontal"
-                >
-                    {(provided) => (
-                        <TaskListContainer ref={provided.innerRef} {...provided.droppableProps}>
-                            {state.board?.lists &&
-                                state.board.lists
-                                    .slice()
-                                    .map((taskList, index) => (
-                                        <TaskList
-                                            key={taskList.id}
-                                            taskList={taskList}
-                                            index={index}
-                                            onAddTaskToTaskList={handleAddTaskToTaskList}
-                                            onRemoveTaskList={handleRemoveTaskList}
-                                            onTaskListRenamed={handleTaskListRenamed}
-                                            onRemoveTask={handleRemoveTask}
-                                            onTaskRenamed={handleTaskRenamed}
-                                        />
-                                    ))}
-                            {provided.placeholder}
-                            <TaskListGenerator onGenerate={handleCreateNewTaskList} />
-                        </TaskListContainer>
-                    )}
-                </Droppable>
-            </DragDropContext>
+        <div className="h-100 background-blue">
+            <div className="container-fluid ">
+                <DragDropContext onDragEnd={onDragEnd}>
+                    <Droppable
+                        droppableId="board"
+                        type={TASK_LIST_DROPPABLE_TYPE}
+                        direction="horizontal"
+                    >
+                        {(provided) => (
+                            <TaskListContainer ref={provided.innerRef} {...provided.droppableProps}>
+                                {state.board?.lists &&
+                                    state.board.lists
+                                        .slice()
+                                        .map((taskList, index) => (
+                                            <TaskList
+                                                key={taskList.id}
+                                                taskList={taskList}
+                                                index={index}
+                                                onAddTaskToTaskList={handleAddTaskToTaskList}
+                                                onRemoveTaskList={handleRemoveTaskList}
+                                                onTaskListRenamed={handleTaskListRenamed}
+                                                onRemoveTask={handleRemoveTask}
+                                                onTaskRenamed={handleTaskRenamed}
+                                            />
+                                        ))}
+                                {provided.placeholder}
+                                <TaskListGenerator onGenerate={handleCreateNewTaskList} />
+                            </TaskListContainer>
+                        )}
+                    </Droppable>
+                </DragDropContext>
+            </div>
         </div>
     );
 }
