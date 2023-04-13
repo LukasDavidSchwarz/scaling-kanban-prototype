@@ -13,7 +13,6 @@
     "react-fontawesome": "^1.7.1",
     "react-textarea-autosize": "^8.4.1",
     "react-use-websocket": "^4.3.1",
-    "styled-components": "^5.3.9",
     "uuid": "^9.0.0"
   },
   "devDependencies": {
