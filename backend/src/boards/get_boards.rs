@@ -11,7 +11,7 @@ use tracing::{error, instrument};
 pub async fn handler(
     State(app_state): State<Arc<AppState>>,
 ) -> Result<Json<Vec<Board>>, StatusCode> {
-    let boards = app_state
+    let mut boards = app_state
         .boards_table
         .find(None, None)
         .await
@@ -26,5 +26,6 @@ pub async fn handler(
             StatusCode::INTERNAL_SERVER_ERROR
         })?;
 
+    boards.sort_unstable_by_key(|board| board.created_at.clone());
     Ok(Json(boards))
 }

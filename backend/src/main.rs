@@ -1,7 +1,7 @@
 mod boards;
 mod connection;
 
-use crate::boards::{get_boards, get_boards_id, post_boards, put_boards_id, Board};
+use crate::boards::{get_boards, get_boards_id, post_boards, put_boards_id, Board, Task, TaskList};
 use crate::connection::websocket_handler;
 
 use async_nats::Client as NatsClient;
@@ -152,17 +152,34 @@ async fn ensure_at_least_one_board(
     let board_count = board_table.estimated_document_count(None).await?;
     info!("The database contains {board_count} boards!");
 
-    let board = if board_count == 0 {
-        let board_0 = Board::default();
-        board_table.insert_one(&board_0, None).await?;
-        board_0
-    } else {
-        board_table.find_one(None, None).await?.ok_or_else(|| {
-            format!(
-                "Board query without filter returned None, even though board count is {board_count}!"
-            )
-        })?
-    };
+    if board_count == 0 {
+        let initial_boards = create_initial_boards();
+        board_table.insert_many(initial_boards, None).await?;
+    }
 
+    let board = board_table
+        .find_one(None, None)
+        .await?
+        .ok_or_else(|| format!("Board query without filter returned None!"))?;
     Ok(board)
+}
+
+fn create_initial_boards() -> Vec<Board> {
+    let grocery_list = TaskList::new(
+        "Grocery list",
+        vec![Task::new("4-6 Apples"), Task::new("Milk")],
+    );
+    let tutorial_list = TaskList::new(
+        "Click here to rename",
+        vec![Task::new("Drag tasks and lists to rearrange them")],
+    );
+    let shopping_board = Board::new("Shopping", vec![grocery_list, tutorial_list]);
+
+    vec![
+        shopping_board,
+        Board::new("Empty Board 1", vec![]),
+        Board::new("Empty Board 2", vec![]),
+        Board::new("Empty Board 3", vec![]),
+        Board::new("Empty Board 4", vec![]),
+    ]
 }

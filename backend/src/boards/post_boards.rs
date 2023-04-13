@@ -18,7 +18,7 @@ pub async fn handler(
     State(app_state): State<Arc<AppState>>,
     Json(new_board_dto): Json<BoardDTO>,
 ) -> Result<Json<Board>, StatusCode> {
-    let new_board = Board::new(new_board_dto.name);
+    let new_board = Board::new(new_board_dto.name, vec![]);
 
     let board_id = app_state
         .boards_table

@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use mongodb::bson::Uuid;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
@@ -11,16 +12,17 @@ pub type BoardId = Uuid;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Board {
-    #[serde(default)]
     pub id: BoardId,
     pub version: u64,
+    // TODO: Differentiate between JSON and BSON serialization to avoid sending bson to frontend
+    #[serde(with = "mongodb::bson::serde_helpers::chrono_datetime_as_bson_datetime")]
+    pub created_at: DateTime<Utc>,
     pub name: String,
     pub lists: Vec<TaskList>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct TaskList {
-    #[serde(default)]
     pub id: Uuid,
     pub name: String,
     pub tasks: Vec<Task>,
@@ -28,18 +30,18 @@ pub struct TaskList {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Task {
-    #[serde(default)]
     pub id: Uuid,
     pub name: String,
 }
 
 impl Board {
-    pub fn new(name: String) -> Self {
+    pub fn new(name: impl ToString, lists: Vec<TaskList>) -> Self {
         Board {
             id: Uuid::new(),
             version: 0,
-            name,
-            lists: vec![],
+            created_at: Utc::now(),
+            name: name.to_string(),
+            lists,
         }
     }
 
@@ -48,24 +50,21 @@ impl Board {
     }
 }
 
-impl Default for Board {
-    fn default() -> Self {
-        let task = Task {
+impl TaskList {
+    pub fn new(name: impl ToString, tasks: Vec<Task>) -> Self {
+        TaskList {
             id: Uuid::new(),
-            name: "Buy apples".to_string(),
-        };
+            name: name.to_string(),
+            tasks,
+        }
+    }
+}
 
-        let list = TaskList {
+impl Task {
+    pub fn new(name: impl ToString) -> Self {
+        Task {
             id: Uuid::new(),
-            name: "Grocery list".to_string(),
-            tasks: vec![task],
-        };
-
-        Board {
-            id: Uuid::new(),
-            version: 0,
-            name: "Shopping list".to_string(),
-            lists: vec![list],
+            name: name.to_string(),
         }
     }
 }
