@@ -141,7 +141,7 @@ export default function Board() {
         return board;
     }
 
-    function handleCreateNewTaskList(name = 'New ToDo List') {
+    function handleCreateNewTaskList(name = 'New list') {
         let newTaskList: ITaskList = {
             id: uuidv4(),
             name: name,
