@@ -1,4 +1,4 @@
-# Scaling Kanban Web App
+# Scaling Kanban Prototype
 
 This project is a prototype of a scaling architecture for a collaborative Kanban web app with live updates via websockets.
 
@@ -8,6 +8,8 @@ I did this to gain more experience with technologies I was curious about:
 - Websockets
 - Pub/Sub 
 - Distributing load between multiple backends
+
+*I did not create unit tests as this is just a small prototype*
 
 # How to run
 1. Clone the repository.
