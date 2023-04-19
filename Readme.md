@@ -1,6 +1,9 @@
 # Scaling Kanban Prototype
+![Screenshot](docs/img/kanban_board_screenshot.png)
 
 This project is a prototype of a scaling architecture for a collaborative Kanban web app with live updates via websockets.
+
+## Why?
 
 I did this to gain more experience with technologies I was curious about:
 - Docker compose
@@ -11,7 +14,8 @@ I did this to gain more experience with technologies I was curious about:
 
 *I did not create unit tests as this is just a small prototype*
 
-# How to run
+
+## How to run
 1. Clone the repository.
 2. Run `docker compose up -d --scale backend=2`. This starts all services and 2 backend instances, feel free to use a higher number.
 3. Open http://localhost:3500 and select a board.
