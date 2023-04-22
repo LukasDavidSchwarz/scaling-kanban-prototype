@@ -9,7 +9,6 @@ services:
       - "--log.level=DEBUG"
       - "--api=true"
       - "--api.dashboard=true"
-      - "--api.insecure=true"  # <- DON'T USE THIS LINE IN PRODUCTION
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.frontend.address=:${FRONTEND_PORT}"
@@ -50,7 +49,7 @@ services:
   backend:
     build:
       context: backend
-      target: development
+      target: "${BACKEND_DOCKER_TARGET}"
     restart: on-failure
     environment:
       - ENV=development
@@ -59,6 +58,7 @@ services:
       - DB_CONNECTION_URL=mongodb://${DB_USERNAME}:${DB_PASSWORD}@database:${DB_PORT}
       - DB_NAME=kanban
       - PUBSUB_CONNECTION_URL=nats://pubsub:${PUBSUB_PORT}
+      - ALLOWED_ORIGINS=${BACKEND_ALLOWED_ORIGINS}
     expose:
       - "${BACKEND_PORT}"
     volumes:

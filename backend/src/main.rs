@@ -20,7 +20,7 @@ use std::net::SocketAddr;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Duration;
-use tower_http::cors::{Any, CorsLayer};
+use tower_http::cors::{AllowOrigin, Any, CorsLayer};
 use tower_http::services::ServeDir;
 use tracing::{error, info};
 use tracing_subscriber::layer::SubscriberExt;
@@ -51,8 +51,8 @@ pub struct Cli {
     db_connect_timeout_s: usize,
 
     #[arg(env)]
-    /// The path to the frontend build (relative to $CARGO_MANIFEST_DIR environment variable)
-    frontend_build: Option<PathBuf>,
+    /// The allowed request origins
+    allowed_origins: Vec<String>,
 }
 
 pub struct AppState {
@@ -83,7 +83,19 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let nats = async_nats::connect(cli.pubsub_connection_url).await?;
     let shared_state = Arc::new(AppState { boards_table, nats });
 
-    let app = app(shared_state, cli.frontend_build)?;
+    // CORS
+    let allowed_origins = cli
+        .allowed_origins
+        .into_iter()
+        .map(|allowed_origin| allowed_origin.parse())
+        .collect::<Result<Vec<_>, _>>()?;
+    info!("Allowed origins: {:?}", allowed_origins);
+    let cors_layer = CorsLayer::new()
+        .allow_methods(Any)
+        .allow_origin(allowed_origins)
+        .allow_headers(Any);
+
+    let app = app(shared_state, cors_layer)?;
     info!("Starting server...");
     info!("Open http://{} to get started", cli.backend_address);
     axum::Server::bind(&cli.backend_address)
@@ -94,10 +106,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn app(
-    shared_state: Arc<AppState>,
-    frontend_app_dir: Option<PathBuf>,
-) -> Result<Router, Box<dyn Error>> {
+fn app(shared_state: Arc<AppState>, cors: CorsLayer) -> Result<Router, Box<dyn Error>> {
     let mut app = Router::new()
         .route("/api/v1/boards", get(get_boards::handler))
         .route("/api/v1/boards", post(post_boards::handler))
@@ -110,28 +119,7 @@ fn app(
                 tower_http::trace::DefaultMakeSpan::default().include_headers(true),
             ),
         )
-        // TODO: Set better CORS policy:
-        .layer(
-            CorsLayer::new()
-                .allow_methods(Any)
-                .allow_origin(Any)
-                .allow_headers(Any),
-        );
-
-    // register service for serving frontend app
-    if let Some(mut frontend_app_dir) = frontend_app_dir {
-        frontend_app_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(frontend_app_dir);
-        frontend_app_dir = canonicalize(&frontend_app_dir).map_err(|err| {
-            error!(
-                "Failed to canonicalize path to frontend build '{:?}': {}",
-                frontend_app_dir, err
-            );
-            err
-        })?;
-        info!("Serving frontend from: {:?}", frontend_app_dir);
-
-        app = app.fallback_service(get_service(ServeDir::new(frontend_app_dir)))
-    }
+        .layer(cors);
 
     Ok(app)
 }

@@ -18,8 +18,4 @@ CMD [ "cargo-watch", "-x", "run"]
 
 FROM base AS production
 
-ENV FRONTEND_BUILD=../frontend/build
-
-COPY . /backend
-COPY ../frontend/build /frontend/build
 CMD [ "cargo", "run", "--offline", "--release"]
