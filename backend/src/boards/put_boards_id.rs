@@ -1,5 +1,5 @@
 use crate::boards::BoardId;
-use crate::{AppState, Board};
+use crate::{AppState, Board, TaskList};
 
 use axum::extract;
 use axum::http::StatusCode;
@@ -17,18 +17,7 @@ use tracing::{error, instrument};
 #[derive(Serialize, Deserialize, Debug)]
 pub struct BoardDTO {
     pub name: String,
-    pub lists: Vec<TaskListDTO>,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct TaskListDTO {
-    pub name: String,
-    pub tasks: Vec<TaskDTO>,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct TaskDTO {
-    pub name: String,
+    pub lists: Vec<TaskList>,
 }
 
 #[instrument(skip(app_state))]
