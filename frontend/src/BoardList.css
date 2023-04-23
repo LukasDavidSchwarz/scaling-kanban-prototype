@@ -3,7 +3,8 @@
     text-decoration: underline;
 }
 
-.board-link, .board-link:hover {
+.board-link,
+.board-link:hover {
     text-decoration: none;
     color: white;
 }
