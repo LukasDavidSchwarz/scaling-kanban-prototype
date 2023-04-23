@@ -32,18 +32,16 @@ export default function BoardList() {
     }, []);
 
     return (
-        <div className="h-100 boards-background">
-            <div className="container">
-                <h2 className="pt-5 pb-3 boards-headline text-center">Boards:</h2>
-                <div className="row row-cols-1 row-cols-md-3">
-                    {state.boards.map((board) => (
-                        <div key={board.id} className="col mb-4">
-                            <Link className="card board-link" to={`/boards/${board.id}`}>
-                                <div className="mb-3 card-body">{board.name}</div>
-                            </Link>
-                        </div>
-                    ))}
-                </div>
+        <div className="container">
+            <h2 className="pt-5 pb-3 boards-headline text-center">Boards:</h2>
+            <div className="row row-cols-1 row-cols-md-3">
+                {state.boards.map((board) => (
+                    <div key={board.id} className="col mb-4">
+                        <Link className="card board-link" to={`/boards/${board.id}`}>
+                            <div className="mb-3 card-body">{board.name}</div>
+                        </Link>
+                    </div>
+                ))}
             </div>
         </div>
     );
