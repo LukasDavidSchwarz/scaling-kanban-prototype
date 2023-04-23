@@ -26,6 +26,6 @@ pub async fn handler(
             StatusCode::INTERNAL_SERVER_ERROR
         })?;
 
-    boards.sort_unstable_by_key(|board| board.created_at.clone());
+    boards.sort_unstable_by_key(|board| board.created_at);
     Ok(Json(boards))
 }

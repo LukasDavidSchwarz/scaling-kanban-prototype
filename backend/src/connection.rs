@@ -1,7 +1,7 @@
 use crate::boards;
 use crate::AppState;
 
-use async_nats::{Subscriber};
+use async_nats::Subscriber;
 use axum::{
     extract::{
         ws::{Message, WebSocket, WebSocketUpgrade},

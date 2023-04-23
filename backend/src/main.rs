@@ -5,8 +5,6 @@ use crate::boards::{get_boards, get_boards_id, post_boards, put_boards_id, Board
 use crate::connection::websocket_handler;
 
 use async_nats::Client as NatsClient;
-
-use axum::routing::get_service;
 use axum::{
     routing::{get, post, put},
     Router,
@@ -15,14 +13,11 @@ use clap::Parser;
 use mongodb::options::ClientOptions as MongoClientOptions;
 use mongodb::{Client as MongoClient, Collection};
 use std::error::Error;
-use std::fs::canonicalize;
 use std::net::SocketAddr;
-use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Duration;
-use tower_http::cors::{AllowOrigin, Any, CorsLayer};
-use tower_http::services::ServeDir;
-use tracing::{error, info};
+use tower_http::cors::{Any, CorsLayer};
+use tracing::info;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 
@@ -107,7 +102,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 }
 
 fn app(shared_state: Arc<AppState>, cors: CorsLayer) -> Result<Router, Box<dyn Error>> {
-    let mut app = Router::new()
+    let app = Router::new()
         .route("/api/v1/boards", get(get_boards::handler))
         .route("/api/v1/boards", post(post_boards::handler))
         .route("/api/v1/boards/:board_id", get(get_boards_id::handler))
@@ -148,7 +143,7 @@ async fn ensure_at_least_one_board(
     let board = board_table
         .find_one(None, None)
         .await?
-        .ok_or_else(|| format!("Board query without filter returned None!"))?;
+        .ok_or_else(|| "Board query without filter returned None!".to_string())?;
     Ok(board)
 }
 
