@@ -18,4 +18,5 @@ CMD [ "cargo-watch", "-x", "run"]
 
 FROM base AS production
 
-CMD [ "cargo", "run", "--offline", "--release"]
+RUN cargo build --release
+CMD [ "cargo", "run", "--release"]
