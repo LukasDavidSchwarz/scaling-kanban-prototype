@@ -17,9 +17,10 @@ I did this to gain more experience with technologies I was curious about:
 
 ## How to run
 1. Clone the repository.
-2. Run `docker compose up -d --scale backend=2`. This starts all services and 2 backend instances, feel free to use a higher number.
+2. Run `run-demo.sh`. This starts all services and 2 backend instances, feel free edit the file to use a higher number of backend instances (change `backend=2` to `backend=6` for example).
 3. Open http://localhost:3500 and select a board.
-4. Open the board in multiple tabs and make changes to the board. The changes should be synchronized between all tabs
+4. Open the board in multiple tabs and make changes to the board. The changes should be synchronized between all tabs.
+5. The backend logs (`docker compose logs backend -f`) should indicate that multiple backends are serving clients.
 
 # Architecture
 
