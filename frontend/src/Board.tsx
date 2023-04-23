@@ -1,4 +1,3 @@
-import './Board.css';
 import React, { useEffect, useState } from 'react';
 import './App.css';
 import TaskListGenerator from './TaskListGenerator';
@@ -290,7 +289,7 @@ export default function Board() {
     }
 
     return (
-        <div className="container-fluid ">
+        <div className="row flex-grow-1">
             <DragDropContext onDragEnd={onDragEnd}>
                 <Droppable
                     droppableId="board"
@@ -299,7 +298,7 @@ export default function Board() {
                 >
                     {(provided) => (
                         <div
-                            className="taskListContainer"
+                            className="d-flex overflow-auto"
                             ref={provided.innerRef}
                             {...provided.droppableProps}
                         >
