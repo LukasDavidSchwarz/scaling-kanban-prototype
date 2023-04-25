@@ -3,7 +3,6 @@ import * as React from 'react';
 import Task from './Task';
 import RenameInput from './RenameInput';
 import { Draggable, Droppable } from 'react-beautiful-dnd';
-import styled from 'styled-components';
 import { ITask, ITaskList } from './types';
 
 interface Props {
@@ -17,9 +16,6 @@ interface Props {
     onTaskRenamed: (taskList: ITaskList, task: ITask, newName: string) => void;
 }
 
-const Container = styled.div``;
-const TaskContainer = styled.div``;
-
 export default function TaskList({
     onAddTaskToTaskList,
     onRemoveTask,
@@ -32,7 +28,7 @@ export default function TaskList({
     return (
         <Draggable draggableId={taskList?.id ?? ''} index={index}>
             {(provided) => (
-                <Container {...provided.draggableProps} ref={provided.innerRef}>
+                <div {...provided.draggableProps} ref={provided.innerRef}>
                     <div className="taskList gray-medium rounded my-2 mx-1 px-2 py-1">
                         <div
                             className="taskListHeader row mb-1 mx-0 px-1"
@@ -54,7 +50,7 @@ export default function TaskList({
                         </div>
                         <Droppable droppableId={taskList?.id ?? ''} type="TASKS">
                             {(provided) => (
-                                <TaskContainer ref={provided.innerRef} {...provided.droppableProps}>
+                                <div ref={provided.innerRef} {...provided.droppableProps}>
                                     {taskList.tasks.map((task, index) => (
                                         <Task
                                             key={task.id}
@@ -67,7 +63,7 @@ export default function TaskList({
                                         />
                                     ))}
                                     {provided.placeholder}
-                                </TaskContainer>
+                                </div>
                             )}
                         </Droppable>
                         <button
@@ -78,7 +74,7 @@ export default function TaskList({
                             + Add task
                         </button>
                     </div>
-                </Container>
+                </div>
             )}
         </Draggable>
     );

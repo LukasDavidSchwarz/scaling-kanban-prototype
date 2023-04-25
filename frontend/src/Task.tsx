@@ -1,7 +1,6 @@
 import './Task.css';
 import RenameInput from './RenameInput';
 import { Draggable } from 'react-beautiful-dnd';
-import styled from 'styled-components';
 import { ITask } from './types';
 
 interface Props {
@@ -11,15 +10,12 @@ interface Props {
     onRemoveTask: (task: ITask) => void;
 }
 
-const Container = styled.div`
-    cursor: pointer;
-`;
-
 export default function Task({ task, index, onRemoveTask, onRenamed }: Props) {
     return (
         <Draggable draggableId={task?.id ?? ''} index={index}>
             {(provided) => (
-                <Container
+                <div
+                    className="taskContainer"
                     {...provided.draggableProps}
                     {...provided.dragHandleProps}
                     ref={provided.innerRef}
@@ -38,7 +34,7 @@ export default function Task({ task, index, onRemoveTask, onRenamed }: Props) {
                             <i className="fa fa-trash" />
                         </button>
                     </div>
-                </Container>
+                </div>
             )}
         </Draggable>
     );
