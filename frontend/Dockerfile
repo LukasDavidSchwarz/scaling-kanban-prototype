@@ -1,6 +1,7 @@
 FROM node:19-alpine AS base
 WORKDIR /frontend
 COPY package.json .
+COPY package-lock.json .
 RUN npm i
 COPY . .
 
@@ -9,6 +10,7 @@ CMD ["npm", "run", "dev"]
 
 FROM base AS builder
 ARG VITE_API_HOST
+ARG VITE_PORT
 ARG VITE_REST_API_PROTOCOL
 ARG VITE_WS_API_PROTOCOL
 ARG VITE_APP_TITLE

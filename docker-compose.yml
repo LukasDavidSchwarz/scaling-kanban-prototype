@@ -11,7 +11,7 @@ services:
       - "--api.dashboard=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.frontend.address=:${FRONTEND_PORT}"
+      - "--entrypoints.frontend.address=:80"
       - "--entrypoints.backend.address=:${BACKEND_PORT}"
     ports:
       - "${FRONTEND_PORT}:80"
@@ -26,14 +26,17 @@ services:
   frontend:
     build:
       context: frontend
+      # environment variables for the frontend have to be passed as build args
+      # because they need to be set when the frontend build is created
+      # (which they are not when using the normal 'environment' section of a service)
+      args:
+        - VITE_API_HOST=0.0.0.0
+        - VITE_PORT=${FRONTEND_PORT}
+        - VITE_API_HOST=localhost:${BACKEND_PORT}
+        - VITE_REST_API_PROTOCOL=http://
+        - VITE_WS_API_PROTOCOL=ws://
+        - VITE_APP_TITLE=${FRONTEND_APP_TITLE}
     restart: on-failure
-    environment:
-      - VITE_HOST=0.0.0.0
-      - VITE_PORT=${FRONTEND_PORT}
-      - VITE_API_HOST=localhost:${BACKEND_PORT}
-      - VITE_REST_API_PROTOCOL=http://
-      - VITE_WS_API_PROTOCOL=ws://
-      - VITE_APP_TITLE=${FRONTEND_APP_TITLE}
     expose:
       - "${FRONTEND_PORT}"
     volumes:
