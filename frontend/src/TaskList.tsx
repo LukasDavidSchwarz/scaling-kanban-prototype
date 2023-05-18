@@ -50,7 +50,7 @@ export default function TaskList({
                         </div>
                         <Droppable droppableId={taskList?.id ?? ''} type="TASKS">
                             {(provided) => (
-                                <div ref={provided.innerRef} {...provided.droppableProps}>
+                                <div className="taskListDropArea" ref={provided.innerRef} {...provided.droppableProps}>
                                     {taskList.tasks.map((task, index) => (
                                         <Task
                                             key={task.id}
