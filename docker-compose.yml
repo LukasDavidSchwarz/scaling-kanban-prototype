@@ -11,10 +11,10 @@ services:
       - "--api.dashboard=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.frontend.address=:80"
+      - "--entrypoints.frontend.address=:${FRONTEND_PORT}"
       - "--entrypoints.backend.address=:${BACKEND_PORT}"
     ports:
-      - "${FRONTEND_PORT}:80"
+      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
       - "${BACKEND_PORT}:${BACKEND_PORT}"
       - "8080:8080"
     volumes:
@@ -30,6 +30,7 @@ services:
       # because they need to be set when the frontend build is created
       # (which they are not when using the normal 'environment' section of a service)
       args:
+        - FRONTEND_PORT=${FRONTEND_PORT}
         - VITE_API_HOST=0.0.0.0
         - VITE_PORT=${FRONTEND_PORT}
         - VITE_API_HOST=localhost:${BACKEND_PORT}
@@ -37,6 +38,8 @@ services:
         - VITE_WS_API_PROTOCOL=ws://
         - VITE_APP_TITLE=${FRONTEND_APP_TITLE}
     restart: on-failure
+    environment:
+      - FRONTEND_PORT=${FRONTEND_PORT}
     expose:
       - "${FRONTEND_PORT}"
     volumes:

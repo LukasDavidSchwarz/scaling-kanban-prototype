@@ -18,7 +18,9 @@ ARG VITE_APP_TITLE
 RUN npm run build
 
 FROM nginx:1.24.0-alpine AS production
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+ARG FRONTEND_PORT
+
+COPY nginx.conf /etc/nginx/templates/default.conf.template
 COPY --from=builder /frontend/build /usr/share/nginx/html
-EXPOSE 80
+EXPOSE "$FRONTEND_PORT"
 CMD ["nginx", "-g", "daemon off;"]
